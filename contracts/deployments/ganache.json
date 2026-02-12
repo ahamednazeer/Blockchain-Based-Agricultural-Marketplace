@@ -1,0 +1,404 @@
+{
+  "address": "0xA3880e33347ec272F485eC78664491bB5092E4Af",
+  "abi": [
+    {
+      "type": "constructor",
+      "stateMutability": "undefined",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "admin"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "OwnableInvalidOwner",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "owner"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "OwnableUnauthorizedAccount",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "account"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "ReentrancyGuardReentrantCall",
+      "inputs": []
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "ContractPaused",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "admin",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "ContractUnpaused",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "admin",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "CropListed",
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "cropId",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "farmer",
+          "indexed": true
+        },
+        {
+          "type": "uint256",
+          "name": "pricePerUnit",
+          "indexed": false
+        },
+        {
+          "type": "uint256",
+          "name": "quantity",
+          "indexed": false
+        },
+        {
+          "type": "uint256",
+          "name": "expiry",
+          "indexed": false
+        },
+        {
+          "type": "string",
+          "name": "offchainId",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "CropPurchased",
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "cropId",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "buyer",
+          "indexed": true
+        },
+        {
+          "type": "uint256",
+          "name": "units",
+          "indexed": false
+        },
+        {
+          "type": "uint256",
+          "name": "value",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "OwnershipTransferred",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "previousOwner",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "newOwner",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "WalletBlacklisted",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "wallet",
+          "indexed": true
+        },
+        {
+          "type": "bool",
+          "name": "status",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "blacklisted",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "cropCount",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "crops",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": ""
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256",
+          "name": "id"
+        },
+        {
+          "type": "address",
+          "name": "farmer"
+        },
+        {
+          "type": "uint256",
+          "name": "pricePerUnit"
+        },
+        {
+          "type": "uint256",
+          "name": "quantity"
+        },
+        {
+          "type": "uint256",
+          "name": "expiry"
+        },
+        {
+          "type": "bool",
+          "name": "isSold"
+        },
+        {
+          "type": "address",
+          "name": "buyer"
+        },
+        {
+          "type": "string",
+          "name": "offchainId"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "listCrop",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "farmer"
+        },
+        {
+          "type": "uint256",
+          "name": "pricePerUnit"
+        },
+        {
+          "type": "uint256",
+          "name": "quantity"
+        },
+        {
+          "type": "uint256",
+          "name": "expiry"
+        },
+        {
+          "type": "string",
+          "name": "offchainId"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "owner",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "pause",
+      "constant": false,
+      "payable": false,
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "paused",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "bool",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "purchaseBatch",
+      "constant": false,
+      "stateMutability": "payable",
+      "payable": true,
+      "inputs": [
+        {
+          "type": "uint256[]",
+          "name": "cropIds"
+        },
+        {
+          "type": "uint256[]",
+          "name": "units"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "purchaseCrop",
+      "constant": false,
+      "stateMutability": "payable",
+      "payable": true,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "cropId"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "purchaseUnits",
+      "constant": false,
+      "stateMutability": "payable",
+      "payable": true,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "cropId"
+        },
+        {
+          "type": "uint256",
+          "name": "units"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "renounceOwnership",
+      "constant": false,
+      "payable": false,
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "setBlacklist",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "wallet"
+        },
+        {
+          "type": "bool",
+          "name": "status"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "transferOwnership",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "newOwner"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "unpause",
+      "constant": false,
+      "payable": false,
+      "inputs": [],
+      "outputs": []
+    }
+  ]
+}
