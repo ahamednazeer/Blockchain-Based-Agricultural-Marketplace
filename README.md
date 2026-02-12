@@ -1,41 +1,77 @@
-# Blockchain-Based Agricultural Marketplace (Ganache)
+<div align="center">
+  <h1>Blockchain-Based Agricultural Marketplace (Ganache)</h1>
+  <p>A full-stack, role-based agricultural marketplace with admin-governed onboarding, off-chain metadata in MongoDB, and on-chain settlement on a local Ganache network.</p>
+  <p>
+    <img src="https://img.shields.io/badge/node-18%2B-3c873a" alt="Node" />
+    <img src="https://img.shields.io/badge/next-16-000000" alt="Next" />
+    <img src="https://img.shields.io/badge/solidity-0.8.24-363636" alt="Solidity" />
+    <img src="https://img.shields.io/badge/mongodb-8.x-47A248" alt="MongoDB" />
+  </p>
+  <p>
+    <a href="#overview">Overview</a> ·
+    <a href="#architecture">Architecture</a> ·
+    <a href="#local-setup">Local setup</a> ·
+    <a href="#blockchain-integration-detailed">Blockchain integration</a> ·
+    <a href="#api-reference">API reference</a>
+  </p>
+</div>
 
-A full-stack, role-based agricultural marketplace with admin-governed onboarding, off-chain metadata in MongoDB, and on-chain settlement on a local Ganache network. Farmers list crops, admins approve and publish them on-chain, and buyers purchase in ETH with transparent ledger records.
+---
 
-## Architecture Overview
+## Quick Links
 
-Layer 1: Frontend (Next.js)
-- User dashboards for Admin, Farmer, Buyer
-- MetaMask wallet connection for signing and transactions
-- Marketplace with cart, partial unit purchases, and checkout flow
+Overview · Architecture · Roles and permissions · End-to-end flow · Tech stack · Repository layout · Prerequisites · Core features · Screenshots · Local setup · Scripts · Environment variables · Smart contract summary · Blockchain integration (detailed) · Event logs and decoding · Sequence diagrams · UI walkthroughs · Data model · API reference · Troubleshooting · Development notes · License
 
-Layer 2: Backend (Node.js + Express + MongoDB)
-- User registration, admin approvals, and role-based auth
-- Crop metadata storage and admin workflows
-- Transaction records, ledger events, analytics, expiry monitoring
-- File uploads for crop images and compliance certificates
+## Table of Contents
 
-Layer 3: Blockchain (Solidity + Ganache)
-- Immutable listing and purchase records
-- ETH payments and on-chain events
-- Admin pause and blacklist controls
+- Overview
+- Architecture
+- Roles and permissions
+- End-to-end flow
+- Tech stack
+- Repository layout
+- Prerequisites
+- Core features
+- Screenshots
+- Local setup
+- Scripts
+- Environment variables
+- Smart contract summary
+- Blockchain integration (detailed)
+- Event logs and decoding (deep dive)
+- Sequence diagrams
+- UI walkthroughs
+- Data model
+- API reference
+- Troubleshooting
+- Development notes
+- License
+
+---
+
+## Overview
+
+This project implements a trust-first agricultural marketplace with:
+- Admin approval for users and listings
+- On-chain pricing and settlement in ETH
+- Off-chain metadata and analytics in MongoDB
+- End-to-end ledger transparency via contract events
+
+## Architecture
+
+| Layer | Tech | Responsibility |
+| --- | --- | --- |
+| Frontend | Next.js, React, Tailwind, ethers | UI, wallets, checkout, dashboards |
+| Backend | Node.js, Express, MongoDB | Auth, approvals, metadata, analytics, uploads |
+| Blockchain | Solidity, Hardhat, Ganache | Listings, purchases, immutable ledger |
 
 ## Roles and Permissions
 
-Admin
-- Approves users and crop listings
-- Controls contract (pause, blacklist)
-- Views all listings, transactions, and reports
-
-Farmer
-- Registers and submits crop listings
-- Uploads images and compliance certificates
-- Updates fulfillment status (shipped, delivered)
-
-Buyer
-- Registers and purchases approved crops
-- Uses cart and checkout with shipping address
-- Tracks order status and delivery timeline
+| Role | Key actions |
+| --- | --- |
+| Admin | Approve users and listings, pause contract, blacklist wallets, view reports |
+| Farmer | Create listings, upload assets, manage fulfillment |
+| Buyer | Purchase approved crops, manage addresses, track orders |
 
 ## End-to-End Flow (Short Version)
 
@@ -49,22 +85,11 @@ Buyer
 
 ## Tech Stack
 
-Frontend
-- Next.js 16
-- React 19
-- Tailwind CSS
-- ethers v6
-
-Backend
-- Node.js + Express
-- MongoDB + Mongoose
-- JWT auth
-- ethers v6
-
-Blockchain
-- Solidity 0.8.24
-- Hardhat
-- Ganache
+| Area | Tools |
+| --- | --- |
+| Frontend | Next.js 16, React 19, Tailwind CSS, ethers v6 |
+| Backend | Node.js, Express, MongoDB, Mongoose, JWT, ethers v6 |
+| Blockchain | Solidity 0.8.24, Hardhat, Ganache |
 
 ## Repository Layout
 
@@ -80,13 +105,38 @@ Blockchain
 - MetaMask browser extension
 - MongoDB (Atlas or local)
 
-## Quick Start (Local)
+## Core Features
 
-1. Start Ganache
-- RPC: `http://127.0.0.1:7545`
-- Chain ID: `1337`
+| Feature | Notes |
+| --- | --- |
+| Marketplace | Filter by category and unit, INR + ETH pricing, add to cart, single-farmer batch checkout |
+| Unit Scaling | Supports kg, g, ml, mg, stored in base units on-chain |
+| Admin Approvals | Users and listings require approval before activation |
+| Orders | Payment status: PENDING/CONFIRMED/FAILED, fulfillment status: PENDING/SHIPPED/DELIVERED |
+| Ledger | On-chain events stored for listing and purchase history |
+| Uploads | Crop images and compliance certificates (image/PDF, max 10 MB) |
 
-2. Deploy the contract
+## Screenshots
+
+Add real UI screenshots in `docs/screenshots/`.
+
+![Landing](/docs/screenshots/landing.png)
+![Admin Dashboard](/docs/screenshots/admin-dashboard.png)
+![Farmer Listings](/docs/screenshots/farmer-listings.png)
+![Marketplace](/docs/screenshots/marketplace.png)
+![Cart Checkout](/docs/screenshots/cart-checkout.png)
+![Buyer Orders](/docs/screenshots/buyer-orders.png)
+
+---
+
+## Local Setup
+
+### 1) Start Ganache
+
+RPC URL: `http://127.0.0.1:7545`
+Chain ID: `1337`
+
+### 2) Deploy the contract
 
 ```bash
 cd /Users/syed.ahamed/skillup/Blockchain-Based-Agricultural-Marketplace/contracts
@@ -94,7 +144,7 @@ npm install
 npm run deploy:ganache
 ```
 
-3. Configure backend
+### 3) Configure backend
 
 Create `/Users/syed.ahamed/skillup/Blockchain-Based-Agricultural-Marketplace/backend/.env`:
 
@@ -122,7 +172,7 @@ FULFILLMENT_AUTO_SHIP_HOURS=6
 FULFILLMENT_AUTO_DELIVER_HOURS=48
 ```
 
-4. Start backend
+### 4) Start backend
 
 ```bash
 cd /Users/syed.ahamed/skillup/Blockchain-Based-Agricultural-Marketplace/backend
@@ -130,7 +180,7 @@ npm install
 npm run dev
 ```
 
-5. Configure frontend
+### 5) Configure frontend
 
 Create `/Users/syed.ahamed/skillup/Blockchain-Based-Agricultural-Marketplace/frontend/.env.local`:
 
@@ -138,7 +188,7 @@ Create `/Users/syed.ahamed/skillup/Blockchain-Based-Agricultural-Marketplace/fro
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-6. Start frontend
+### 6) Start frontend
 
 ```bash
 cd /Users/syed.ahamed/skillup/Blockchain-Based-Agricultural-Marketplace/frontend
@@ -146,48 +196,76 @@ npm install
 npm run dev
 ```
 
-7. MetaMask setup
+### 7) MetaMask setup
 
 Network
-- Network name: Ganache
-- RPC URL: `http://127.0.0.1:7545`
+- Name: Ganache
+- RPC: `http://127.0.0.1:7545`
 - Chain ID: `1337`
-- Currency symbol: `ETH`
+- Currency: `ETH`
 
 Accounts
-- Import a funded Ganache account to MetaMask
-- Use that account as Buyer for purchases
+- Import a funded Ganache account into MetaMask
+- Use it as the Buyer wallet for purchases
 
-## Core Features
+---
 
-Marketplace
-- Filter by category and unit
-- INR and ETH pricing
-- Add to cart, single-farmer batch checkout
-- Out-of-stock items remain visible but disabled
+## Scripts
 
-Unit Scaling
-- Supports kg, g, ml, mg, etc
-- Stored in base units on-chain
-- Allows safe partial purchases
+| Area | Command | Description |
+| --- | --- | --- |
+| Contracts | `npm run compile` | Compile Solidity |
+| Contracts | `npm run deploy:ganache` | Deploy to Ganache |
+| Backend | `npm run dev` | Start API with nodemon |
+| Backend | `npm run start` | Start API |
+| Frontend | `npm run dev` | Start Next.js |
+| Frontend | `npm run build` | Build frontend |
 
-Admin Approvals
-- Users must be approved before access
-- Listings must be approved before on-chain publish
+<details>
+<summary><strong>Environment Variables</strong></summary>
 
-Orders
-- Payment status: PENDING, CONFIRMED, FAILED
-- Fulfillment status: PENDING, SHIPPED, DELIVERED
-- Shipping address stored with each order
+### Backend
 
-Ledger
-- On-chain events stored for listing and purchase history
-- Dedicated public ledger view in UI
+| Variable | Purpose |
+| --- | --- |
+| `PORT` | API port |
+| `MONGODB_URI` | MongoDB connection |
+| `JWT_SECRET` | JWT signing secret |
+| `ADMIN_USERNAME` | Admin login user |
+| `ADMIN_PASSWORD` | Admin login password |
+| `ADMIN_WALLET` | Admin wallet address |
+| `ADMIN_PRIVATE_KEY` | Admin private key for on-chain listings |
+| `GANACHE_RPC_URL` | Ganache JSON-RPC URL |
+| `CONTRACT_ADDRESS` | Deployed contract address |
+| `CONTRACT_ABI_PATH` | ABI file path |
+| `CONTRACT_ABI_JSON` | Optional ABI JSON string |
+| `CORS_ORIGIN` | Frontend origin |
+| `EXPIRY_CHECK_INTERVAL_MS` | Crop expiry check interval |
+| `ETH_INR_RATE` | Fallback ETH/INR rate |
+| `ETH_RATE_CACHE_MS` | Exchange rate cache TTL |
+| `TX_RECONCILE_INTERVAL_MS` | Pending tx check interval |
+| `TX_SYNC_ENABLED` | Enable event backfill |
+| `TX_SYNC_FROM_BLOCK` | Start block for sync |
+| `TX_SYNC_LOOKBACK_BLOCKS` | Lookback if no start block |
+| `FULFILLMENT_CHECK_INTERVAL_MS` | Fulfillment check interval |
+| `FULFILLMENT_AUTO_SHIP_HOURS` | Auto-ship threshold |
+| `FULFILLMENT_AUTO_DELIVER_HOURS` | Auto-deliver threshold |
 
-Uploads
-- Crop images and compliance certificates
-- Supported: images and PDF
-- Size limit: 10 MB
+### Frontend
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_API_URL` | API base URL |
+
+### Contracts
+
+| Variable | Purpose |
+| --- | --- |
+| `GANACHE_RPC_URL` | Network URL for Hardhat |
+
+</details>
+
+---
 
 ## Smart Contract Summary
 
@@ -198,8 +276,6 @@ Key Functions
 - `purchaseCrop(cropId)`
 - `purchaseUnits(cropId, units)`
 - `purchaseBatch(cropIds, units)`
-- `pause()` / `unpause()`
-- `setBlacklist(wallet, status)`
 
 Events
 - `CropListed`
@@ -214,6 +290,8 @@ Security Rules
 - Prevent expired sales (`expiry > block.timestamp`)
 - Admin-only operations (`onlyOwner`)
 - Reentrancy protection (`nonReentrant`)
+
+---
 
 ## Blockchain Integration (Detailed)
 
@@ -256,24 +334,24 @@ This makes `purchaseUnits(cropId, units)` safe for fractional user quantities wh
 4. Backend calls `listCrop(...)` on the contract using the admin wallet.
 5. Contract emits `CropListed` event.
 6. Backend listener updates MongoDB:
-   - `contractCropId`
-   - `txHash`
-   - `status = APPROVED`
-   - Backfills ETH pricing from on-chain `pricePerUnit`
+- `contractCropId`
+- `txHash`
+- `status = APPROVED`
+- Backfills ETH pricing from on-chain `pricePerUnit`
 
 ### Purchase Flow (On-chain -> Off-chain)
 
 1. Buyer adds items to cart and checks out.
 2. Frontend calls `purchaseBatch(cropIds, units)` with `msg.value = totalWei`.
 3. Contract validates:
-   - Crop exists, not expired, not sold
-   - Units requested are available
-   - `msg.value` equals expected total
+- Crop exists, not expired, not sold
+- Units requested are available
+- `msg.value` equals expected total
 4. Contract emits `CropPurchased`.
 5. Backend listener records the transaction in MongoDB:
-   - `status = CONFIRMED`
-   - `txHash`, `blockNumber`, `timestamp`
-   - Buyer wallet, farmer wallet, units, ETH value
+- `status = CONFIRMED`
+- `txHash`, `blockNumber`, `timestamp`
+- Buyer wallet, farmer wallet, units, ETH value
 6. Backend reduces crop quantity in MongoDB.
 7. If quantity reaches zero, crop status becomes `SOLD`.
 
@@ -330,7 +408,9 @@ On-chain price is authoritative for settlement:
 
 If ETH price is missing in MongoDB, the backend backfills it from on-chain events.
 
-### Event Logs and Decoding (Deep Dive)
+---
+
+## Event Logs and Decoding (Deep Dive)
 
 The contract emits two critical events:
 
@@ -341,10 +421,10 @@ The contract emits two critical events:
 How the backend decodes:
 - The listener receives the event with `event.args` from ethers.
 - For reconciliation, the backend parses raw logs using the ABI:
-  - `contract.interface.parseLog(log)`
+- `contract.interface.parseLog(log)`
 - Decoded fields are mapped into MongoDB:
-  - `LedgerEvent` records an immutable audit row
-  - `Transaction` is updated to `CONFIRMED`
+- `LedgerEvent` records an immutable audit row
+- `Transaction` is updated to `CONFIRMED`
 
 Example mapping:
 - `pricePerUnit` (wei) -> `pricePerBaseUnitEth` (ETH string)
@@ -354,12 +434,10 @@ Example mapping:
 Raw receipt inspection (useful for debugging):
 
 ```bash
-curl -s -X POST http://127.0.0.1:7545 \\
-  -H \"Content-Type: application/json\" \\
-  --data '{\"jsonrpc\":\"2.0\",\"method\":\"eth_getTransactionReceipt\",\"params\":[\"0xTX_HASH\"],\"id\":1}'
+curl -s -X POST http://127.0.0.1:7545 \
+  -H "Content-Type: application/json" \
+  --data '{"jsonrpc":"2.0","method":"eth_getTransactionReceipt","params":["0xTX_HASH"],"id":1}'
 ```
-
-Ganache may show `VALUE 0.00` for small transfers because it rounds to 2 decimals. Always trust the receipt value in wei.
 
 ### Function-Level Blockchain Flow
 
@@ -428,101 +506,7 @@ Precision rules:
 - ETH to wei uses `ethers.parseEther`
 - On-chain only accepts integer wei values
 
-## Key API Endpoints
-
-Auth
-- `GET /auth/nonce?wallet=0x...`
-- `POST /auth/verify`
-- `POST /auth/admin`
-
-Users
-- `POST /users/register`
-- `GET /users/me`
-- `GET /users/addresses`
-- `POST /users/addresses`
-- `PATCH /users/addresses/:id`
-- `PATCH /users/addresses/:id/default`
-- `DELETE /users/addresses/:id`
-- `GET /users/admin`
-- `POST /users/admin/:id/approve`
-- `POST /users/admin/:id/reject`
-- `POST /users/admin/:id/suspend`
-
-Crops
-- `GET /crops`
-- `POST /crops`
-- `GET /crops/mine`
-- `GET /crops/admin/all`
-- `POST /crops/admin/:id/approve`
-- `POST /crops/admin/:id/reject`
-
-Transactions
-- `GET /transactions`
-- `GET /transactions/admin`
-- `POST /transactions/intent`
-- `PATCH /transactions/:id/fulfillment`
-
-Other
-- `GET /ledger`
-- `GET /rates/eth-inr`
-- `GET /stats/marketplace`
-- `GET /stats/admin`
-- `GET /stats/farmer`
-- `GET /stats/buyer`
-- `POST /uploads`
-
-## Environment Variables (Details)
-
-Backend
-- `PORT`: API server port
-- `MONGODB_URI`: MongoDB connection string
-- `JWT_SECRET`: JWT signing secret
-- `ADMIN_USERNAME` / `ADMIN_PASSWORD`: Admin login
-- `ADMIN_WALLET`: Admin wallet address (lowercase recommended)
-- `ADMIN_PRIVATE_KEY`: Admin wallet private key for listing on-chain
-- `GANACHE_RPC_URL`: Ganache JSON-RPC URL
-- `CONTRACT_ADDRESS`: Deployed contract address
-- `CONTRACT_ABI_PATH`: Path to ABI JSON (relative to backend)
-- `CONTRACT_ABI_JSON`: Optional raw ABI JSON string
-- `CORS_ORIGIN`: Frontend origin
-- `EXPIRY_CHECK_INTERVAL_MS`: Expiry monitor interval
-- `ETH_INR_RATE`: Fallback ETH/INR rate
-- `ETH_RATE_CACHE_MS`: Cache TTL for ETH/INR fetch
-- `TX_RECONCILE_INTERVAL_MS`: Sync pending tx receipts
-- `TX_SYNC_ENABLED`: Enable past-event sync
-- `TX_SYNC_FROM_BLOCK`: Start block for sync
-- `TX_SYNC_LOOKBACK_BLOCKS`: Lookback if no start block
-- `FULFILLMENT_CHECK_INTERVAL_MS`: Fulfillment monitor interval
-- `FULFILLMENT_AUTO_SHIP_HOURS`: Auto-ship threshold
-- `FULFILLMENT_AUTO_DELIVER_HOURS`: Auto-deliver threshold
-
-Frontend
-- `NEXT_PUBLIC_API_URL`: Backend base URL
-
-Contracts
-- `GANACHE_RPC_URL`: Used by Hardhat deploy
-
-## Troubleshooting
-
-“Blockchain listener active” but orders stay PENDING
-- Ensure `CONTRACT_ADDRESS` and `CONTRACT_ABI_PATH` match the latest deploy
-- Restart backend to re-run event sync
-- Verify Ganache has not been reset
-
-Ganache shows VALUE = 0.00
-- Ganache rounds to 2 decimals. Small ETH values show as 0.00
-- Check exact tx value using `eth_getTransactionByHash`
-
-Insufficient funds
-- Import a funded Ganache account into MetaMask
-- Use that account for the buyer
-
-“ABI not found”
-- Confirm `CONTRACT_ABI_PATH` points to `contracts/deployments/ganache.json`
-
-Orders empty
-- Confirm you are logged in with the same wallet used to buy
-- Backend queries match buyer wallet case-insensitively
+---
 
 ## Sequence Diagrams
 
@@ -605,26 +589,104 @@ sequenceDiagram
 5. Add or select shipping address and checkout.
 6. Track payment and delivery timeline in My Orders.
 
+---
+
+## Data Model
+
+### User
+
+Key fields:
+- `name`, `contact`, `location`
+- `role`: ADMIN, FARMER, BUYER
+- `walletAddress`
+- `status`: PENDING, ACTIVE, REJECTED, SUSPENDED
+- `shippingAddresses` (buyer only)
+
+### Crop
+
+Key fields:
+- `name`, `category`, `description`, `storageType`
+- `quantity`, `quantityUnit`, `quantityBaseValue`, `unitScale`
+- `pricePerUnitEth`, `pricePerUnitInr`, `pricePerBaseUnitEth`
+- `status`: PENDING, APPROVED, REJECTED, SOLD, EXPIRED
+- `contractCropId`, `txHash`
+
+### Transaction
+
+Key fields:
+- `txHash`, `buyerWallet`, `farmerWallet`
+- `valueEth`, `units`
+- `status`: PENDING, CONFIRMED, FAILED
+- `fulfillmentStatus`: PENDING, SHIPPED, DELIVERED
+- `shippingAddress`
+
+### LedgerEvent
+
+Key fields:
+- `type`: CropListed or CropPurchased
+- `txHash`, `blockNumber`, `logIndex`
+- `valueEth`, `units`, `timestamp`
+
+---
+
+## API Reference
+
+Auth
+- `GET /auth/nonce?wallet=0x...`
+- `POST /auth/verify`
+- `POST /auth/admin`
+
+Users
+- `POST /users/register`
+- `GET /users/me`
+- `GET /users/addresses`
+- `POST /users/addresses`
+- `PATCH /users/addresses/:id`
+- `PATCH /users/addresses/:id/default`
+- `DELETE /users/addresses/:id`
+- `GET /users/admin`
+- `POST /users/admin/:id/approve`
+- `POST /users/admin/:id/reject`
+- `POST /users/admin/:id/suspend`
+
+Crops
+- `GET /crops`
+- `POST /crops`
+- `GET /crops/mine`
+- `GET /crops/admin/all`
+- `POST /crops/admin/:id/approve`
+- `POST /crops/admin/:id/reject`
+
+Transactions
+- `GET /transactions`
+- `GET /transactions/admin`
+- `POST /transactions/intent`
+- `PATCH /transactions/:id/fulfillment`
+
+Other
+- `GET /ledger`
+- `GET /rates/eth-inr`
+- `GET /stats/marketplace`
+- `GET /stats/admin`
+- `GET /stats/farmer`
+- `GET /stats/buyer`
+- `POST /uploads`
+
+---
+
+## Troubleshooting
+
+| Issue | Fix |
+| --- | --- |
+| Orders stuck at PENDING | Check contract address, restart backend, verify event sync |
+| Ganache shows 0.00 | Value is small, check wei via JSON-RPC |
+| Insufficient funds | Import a funded Ganache account into MetaMask |
+| ABI not found | Ensure `CONTRACT_ABI_PATH` points to deployments file |
+| Orders empty | Confirm correct wallet is signed in |
+
 ## Development Notes
 
 - Cart purchases call `purchaseBatch` and require items from the same farmer.
 - Admin approval publishes listings to chain using the admin private key.
 - Off-chain crop metadata is stored in MongoDB; only price and quantity are on-chain.
 - Crop quantities are stored in base units for precise partial buying.
-
-## Scripts
-
-Contracts
-- `npm run compile`
-- `npm run deploy:ganache`
-
-Backend
-- `npm run dev`
-- `npm run start`
-
-Frontend
-- `npm run dev`
-- `npm run build`
-- `npm run start`
-
-## License
