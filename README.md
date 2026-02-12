@@ -20,7 +20,7 @@
 
 ## Quick Links
 
-Overview · Architecture · Roles and permissions · End-to-end flow · Tech stack · Repository layout · Prerequisites · Core features · Screenshots · Local setup · Scripts · Environment variables · Smart contract summary · Blockchain integration (detailed) · Event logs and decoding · Sequence diagrams · UI walkthroughs · Data model · API reference · Troubleshooting · Development notes · License
+[Overview](#overview) · [Architecture](#architecture) · [Roles and permissions](#roles-and-permissions) · [End-to-end flow](#end-to-end-flow-short-version) · [Tech stack](#tech-stack) · [Repository layout](#repository-layout) · [Prerequisites](#prerequisites) · [Core features](#core-features) · [Screenshots](#screenshots) · [Local setup](#local-setup) · [Scripts](#scripts) · [Environment variables](#environment-variables) · [Smart contract summary](#smart-contract-summary) · [Blockchain integration (detailed)](#blockchain-integration-detailed) · [Event logs and decoding](#event-logs-and-decoding-deep-dive) · [Sequence diagrams](#sequence-diagrams) · [UI walkthroughs](#ui-walkthroughs) · [Data model](#data-model) · [API reference](#api-reference) · [Troubleshooting](#troubleshooting) · [Development notes](#development-notes) · [License](#license)
 
 ## Table of Contents
 
@@ -116,18 +116,6 @@ This project implements a trust-first agricultural marketplace with:
 | Ledger | On-chain events stored for listing and purchase history |
 | Uploads | Crop images and compliance certificates (image/PDF, max 10 MB) |
 
-## Screenshots
-
-Add real UI screenshots in `docs/screenshots/`.
-
-![Landing](/docs/screenshots/landing.png)
-![Admin Dashboard](/docs/screenshots/admin-dashboard.png)
-![Farmer Listings](/docs/screenshots/farmer-listings.png)
-![Marketplace](/docs/screenshots/marketplace.png)
-![Cart Checkout](/docs/screenshots/cart-checkout.png)
-![Buyer Orders](/docs/screenshots/buyer-orders.png)
-
----
 
 ## Local Setup
 
