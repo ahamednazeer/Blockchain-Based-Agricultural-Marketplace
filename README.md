@@ -22,6 +22,8 @@
 
 [Overview](#overview) · [Architecture](#architecture) · [Roles and permissions](#roles-and-permissions) · [End-to-end flow](#end-to-end-flow-short-version) · [Tech stack](#tech-stack) · [Repository layout](#repository-layout) · [Prerequisites](#prerequisites) · [Core features](#core-features) · [Screenshots](#screenshots) · [Local setup](#local-setup) · [Scripts](#scripts) · [Environment variables](#environment-variables) · [Smart contract summary](#smart-contract-summary) · [Blockchain integration (detailed)](#blockchain-integration-detailed) · [Event logs and decoding](#event-logs-and-decoding-deep-dive) · [Sequence diagrams](#sequence-diagrams) · [UI walkthroughs](#ui-walkthroughs) · [Data model](#data-model) · [API reference](#api-reference) · [Troubleshooting](#troubleshooting) · [Development notes](#development-notes) · [License](#license)
 
+Dedicated setup walkthrough: `README-SETUP.md`
+
 ## Table of Contents
 
 - Overview
@@ -198,6 +200,36 @@ Accounts
 
 ---
 
+## Docker (Local)
+
+Run the full stack with one command:
+
+```bash
+cd /Users/syed.ahamed/skillup/Blockchain-Based-Agricultural-Marketplace
+docker compose up --build
+```
+
+Default endpoints:
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8000`
+- Ganache: `http://localhost:7545`
+- MongoDB: `mongodb://localhost:27017`
+
+Docker setup details:
+- `docker-compose.yml` runs MongoDB, Ganache, contract deployer, backend, and frontend.
+- Ganache uses the deterministic mnemonic:
+  `test test test test test test test test test test test junk`
+- Admin wallet/private key (first derived account):
+  `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`
+  `0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80`
+- The contracts service writes ABI + address to a shared volume used by the backend.
+
+MetaMask in Docker mode:
+- Network RPC URL: `http://127.0.0.1:7545`
+- Chain ID: `1337`
+- Import the admin or any Ganache-funded account from the mnemonic above.
+---
+
 ## Scripts
 
 | Area | Command | Description |
@@ -206,6 +238,7 @@ Accounts
 | Contracts | `npm run deploy:ganache` | Deploy to Ganache |
 | Backend | `npm run dev` | Start API with nodemon |
 | Backend | `npm run start` | Start API |
+| Backend | `npm run send:eth -- --to <WALLET> --eth 10` | Send ETH on local Ganache to a wallet |
 | Frontend | `npm run dev` | Start Next.js |
 | Frontend | `npm run build` | Build frontend |
 
@@ -668,9 +701,52 @@ Other
 | --- | --- |
 | Orders stuck at PENDING | Check contract address, restart backend, verify event sync |
 | Ganache shows 0.00 | Value is small, check wei via JSON-RPC |
-| Insufficient funds | Import a funded Ganache account into MetaMask |
+| Insufficient funds | Import a funded Ganache account into MetaMask or top up with `npm run send:eth -- --to <WALLET> --eth 10` |
+| `missing revert data` on `estimateGas` (`purchaseBatch` / `purchaseCrop`) | Usually stale `contractCropId` after Ganache reset, wrong contract owner, or buyer has 0 ETH. See fix flow below. |
 | ABI not found | Ensure `CONTRACT_ABI_PATH` points to deployments file |
 | Orders empty | Confirm correct wallet is signed in |
+
+### Quick Wallet Top-Up (Ganache)
+
+Use this when MetaMask shows `Insufficient funds` on local Ganache.
+
+```bash
+cd /Users/syed.ahamed/skillup/Blockchain-Based-Agricultural-Marketplace/backend
+npm run send:eth -- --to <WALLET_ADDRESS> --eth 10
+```
+
+Optional flags:
+- `--rpc http://127.0.0.1:7545`
+- `--from <FUNDED_GANACHE_ADDRESS>`
+- `--pk <PRIVATE_KEY>`
+
+### Fix: `missing revert data` on checkout (`purchaseBatch` / `purchaseCrop`)
+
+If MetaMask shows:
+- `missing revert data (action=\"estimateGas\" ...)`
+- method data starts with `0xc901de1a` (`purchaseBatch`)
+
+Use this order:
+
+1. Confirm buyer wallet has ETH on Ganache (`chainId 1337`).
+   - If needed, top up using `npm run send:eth` above.
+2. Clear stale cart entries in UI.
+   - In Marketplace, click `Clear` in the cart and hard refresh.
+3. Re-publish approved listings on-chain (fix stale `contractCropId` after Ganache reset).
+   - Approve listings again from Admin Listings page, or use API:
+
+```bash
+TOKEN=$(curl -s -X POST http://127.0.0.1:8000/auth/admin \
+  -H 'Content-Type: application/json' \
+  --data '{"username":"admin","password":"test123"}' | jq -r .token)
+
+curl -s -X POST http://127.0.0.1:8000/crops/admin/<CROP_ID>/approve \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+4. If approve still fails with on-chain revert, your `ADMIN_PRIVATE_KEY` is not the current contract owner.
+   - Recommended: redeploy contract (`npm run deploy:ganache`), update backend `CONTRACT_ADDRESS`, restart backend.
+   - Alternative (local Ganache only): transfer contract ownership to the admin wallet configured in `backend/.env`.
 
 ## Development Notes
 

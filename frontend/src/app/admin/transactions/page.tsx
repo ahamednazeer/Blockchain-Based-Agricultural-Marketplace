@@ -98,9 +98,9 @@ export default function AdminTransactions() {
       {rows.length === 0 ? (
         <div className="hud-card text-sm text-slate-400">No transactions yet.</div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-slate-800/70 bg-slate-900/50">
+        <div className="overflow-x-auto rounded-sm border border-slate-700/60 bg-slate-800/40">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-900/80">
+            <thead className="bg-slate-800/40">
               <tr>
                 {[
                   "Tx Hash",
@@ -138,7 +138,7 @@ export default function AdminTransactions() {
                 const delivered = row.fulfillmentStatus === "DELIVERED";
                 return (
                   <React.Fragment key={row.rowKey}>
-                    <tr className="border-t border-slate-800/60 text-slate-200">
+                    <tr className="border-t border-slate-700/60 text-slate-200">
                       <td className="px-4 py-3">
                         <span title={row.hashLabel} className="text-xs font-mono">
                           {formatWallet(row.hashLabel)}
@@ -172,14 +172,14 @@ export default function AdminTransactions() {
                       <td className="px-4 py-3">
                         <button
                           onClick={() => setExpandedId(isOpen ? null : row.rowKey)}
-                          className="text-xs font-mono uppercase tracking-[0.2em] text-sky-200 hover:text-sky-100"
+                          className="text-xs font-mono uppercase tracking-[0.2em] text-blue-400 hover:text-blue-300"
                         >
                           {isOpen ? "Hide" : "Details"}
                         </button>
                       </td>
                     </tr>
                     {isOpen && (
-                      <tr className="border-t border-slate-800/60 bg-slate-950/60">
+                      <tr className="border-t border-slate-700/60 bg-slate-950/60">
                         <td colSpan={10} className="px-6 py-5">
                           <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-6">
                             <div className="space-y-3">
@@ -205,18 +205,18 @@ export default function AdminTransactions() {
                               <p className="hud-label">Order Timeline</p>
                               <div className="flex items-center gap-4 text-xs font-mono uppercase tracking-[0.2em] text-slate-400">
                                 <div className="flex items-center gap-2">
-                                  <span className={`h-2 w-2 rounded-full ${paymentDone ? "bg-emerald-400" : "bg-slate-600"}`} />
-                                  <span className={paymentDone ? "text-emerald-200" : ""}>Payment</span>
+                                  <span className={`h-2 w-2 rounded-sm ${paymentDone ? "bg-emerald-400" : "bg-slate-600"}`} />
+                                  <span className={paymentDone ? "text-green-400" : ""}>Payment</span>
                                 </div>
                                 <span className={`h-[1px] w-10 ${paymentDone ? "bg-emerald-400/60" : "bg-slate-700"}`} />
                                 <div className="flex items-center gap-2">
-                                  <span className={`h-2 w-2 rounded-full ${shipped ? "bg-sky-400" : "bg-slate-600"}`} />
-                                  <span className={shipped ? "text-sky-200" : ""}>Shipped</span>
+                                  <span className={`h-2 w-2 rounded-sm ${shipped ? "bg-blue-400" : "bg-slate-600"}`} />
+                                  <span className={shipped ? "text-blue-400" : ""}>Shipped</span>
                                 </div>
                                 <span className={`h-[1px] w-10 ${delivered ? "bg-emerald-400/60" : "bg-slate-700"}`} />
                                 <div className="flex items-center gap-2">
-                                  <span className={`h-2 w-2 rounded-full ${delivered ? "bg-emerald-400" : "bg-slate-600"}`} />
-                                  <span className={delivered ? "text-emerald-200" : ""}>Delivered</span>
+                                  <span className={`h-2 w-2 rounded-sm ${delivered ? "bg-emerald-400" : "bg-slate-600"}`} />
+                                  <span className={delivered ? "text-green-400" : ""}>Delivered</span>
                                 </div>
                               </div>
                               <p className="text-xs text-slate-500">

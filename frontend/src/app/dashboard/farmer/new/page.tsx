@@ -307,9 +307,9 @@ export default function NewListing() {
       <form className="hud-panel p-6 space-y-5" onSubmit={handleSubmit}>
         {status && (
           <div
-            className={`rounded-lg border px-4 py-3 text-sm ${
+            className={`rounded-sm border px-4 py-3 text-sm ${
               status === "success"
-                ? "border-emerald-500/40 text-emerald-200 bg-emerald-500/10"
+                ? "border-green-600 text-green-400 bg-green-950/50"
                 : "border-rose-500/40 text-rose-200 bg-rose-500/10"
             }`}
           >
@@ -320,7 +320,7 @@ export default function NewListing() {
           <div>
             <label className="hud-label">Crop Name</label>
             <input
-              className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+              className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
               placeholder="Organic Basmati Rice"
               value={form.name}
               onChange={(e) => updateField("name", e.target.value)}
@@ -329,7 +329,7 @@ export default function NewListing() {
           <div>
             <label className="hud-label">Category</label>
             <select
-              className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+              className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
               value={form.category}
               onChange={(e) => updateField("category", e.target.value)}
             >
@@ -346,7 +346,7 @@ export default function NewListing() {
               type="number"
               min="0"
               step={stepForScale(unitMeta.scale)}
-              className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+              className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
               placeholder="10"
               value={form.quantityValue}
               onChange={(e) => updateField("quantityValue", e.target.value)}
@@ -361,7 +361,7 @@ export default function NewListing() {
           <div>
             <label className="hud-label">Unit</label>
             <select
-              className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+              className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
               value={form.quantityUnit}
               onChange={(e) => updateField("quantityUnit", e.target.value)}
             >
@@ -379,13 +379,13 @@ export default function NewListing() {
                 type="number"
                 min="0"
                 step="0.0001"
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+                className="w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
                 placeholder={form.priceCurrency === "INR" ? "120" : "0.015"}
                 value={form.pricePerUnit}
                 onChange={(e) => updateField("pricePerUnit", e.target.value)}
               />
               <select
-                className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-3 text-sm"
+                className="bg-slate-950 border border-slate-700 rounded-sm px-3 py-3 text-sm"
                 value={form.priceCurrency}
                 onChange={(e) => updateField("priceCurrency", e.target.value)}
               >
@@ -402,7 +402,7 @@ export default function NewListing() {
             <label className="hud-label">Harvest Date</label>
             <input
               type="date"
-              className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+              className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
               value={form.harvestDate}
               onChange={(e) => updateField("harvestDate", e.target.value)}
             />
@@ -411,7 +411,7 @@ export default function NewListing() {
             <label className="hud-label">Expiry Date</label>
             <input
               type="date"
-              className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+              className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
               value={form.expiryDate}
               onChange={(e) => updateField("expiryDate", e.target.value)}
             />
@@ -445,7 +445,7 @@ export default function NewListing() {
         <div>
           <label className="hud-label">Storage Type</label>
           <input
-            className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+            className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
             placeholder="Cold storage, humidity controlled"
             value={form.storageType}
             onChange={(e) => updateField("storageType", e.target.value)}
@@ -454,7 +454,7 @@ export default function NewListing() {
         <div>
           <label className="hud-label">Description</label>
           <textarea
-            className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+            className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
             rows={4}
             placeholder="Quality notes, certifications, logistics details."
             value={form.description}
@@ -463,7 +463,7 @@ export default function NewListing() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="border border-dashed border-slate-700/80 rounded-lg p-6 text-center">
+          <div className="border border-dashed border-slate-700/80 rounded-sm p-6 text-center">
             <label className="cursor-pointer block">
               <input
                 type="file"
@@ -477,14 +477,14 @@ export default function NewListing() {
               <p className="text-sm text-slate-300 mt-2">Upload crop images (multiple)</p>
               <p className="text-xs text-slate-500 font-mono uppercase tracking-[0.2em] mt-1">PNG, JPG · Max 10MB each</p>
             </label>
-            {uploadingImages && <p className="text-xs text-sky-200 mt-2">Uploading images...</p>}
+            {uploadingImages && <p className="text-xs text-blue-400 mt-2">Uploading images...</p>}
             {imageUploads.length > 0 && (
               <p className="text-xs text-slate-300 mt-2">{imageUploads.length} image(s) uploaded</p>
             )}
             {imageError && <p className="text-xs text-rose-200 mt-2">{imageError}</p>}
           </div>
 
-          <div className="border border-dashed border-slate-700/80 rounded-lg p-6 text-center">
+          <div className="border border-dashed border-slate-700/80 rounded-sm p-6 text-center">
             <label className="cursor-pointer block">
               <input
                 type="file"
@@ -497,7 +497,7 @@ export default function NewListing() {
               <p className="text-sm text-slate-300 mt-2">Upload compliance certificate (PDF)</p>
               <p className="text-xs text-slate-500 font-mono uppercase tracking-[0.2em] mt-1">PDF · Max 10MB</p>
             </label>
-            {uploadingCert && <p className="text-xs text-sky-200 mt-2">Uploading certificate...</p>}
+            {uploadingCert && <p className="text-xs text-blue-400 mt-2">Uploading certificate...</p>}
             {certificate && !uploadingCert && (
               <p className="text-xs text-slate-300 mt-2">Uploaded: {certificate.name}</p>
             )}
@@ -505,7 +505,7 @@ export default function NewListing() {
           </div>
         </div>
 
-        <button className="w-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 rounded-lg py-3 text-sm font-mono uppercase tracking-[0.2em] hover:bg-emerald-500/30">
+        <button className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-sm font-medium tracking-wide uppercase text-sm px-4 py-3 shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
           Submit for Admin Review
         </button>
       </form>

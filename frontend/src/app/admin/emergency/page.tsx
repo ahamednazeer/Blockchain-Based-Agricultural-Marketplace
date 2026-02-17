@@ -25,7 +25,7 @@ export default function AdminEmergency() {
             </div>
           </div>
           <StatusBadge label="Unpaused" tone="active" />
-          <button className="w-full border border-amber-400/60 text-amber-200 rounded-lg py-3 text-xs font-mono uppercase tracking-[0.2em] hover:bg-amber-500/10">
+          <button className="w-full border border-yellow-600 text-amber-200 rounded-sm py-3 text-xs font-mono uppercase tracking-[0.2em] hover:bg-yellow-950/50">
             Pause Contract
           </button>
         </div>
@@ -38,10 +38,10 @@ export default function AdminEmergency() {
             </div>
           </div>
           <input
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+            className="w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm text-slate-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
             placeholder="0x0000..."
           />
-          <button className="w-full border border-rose-400/60 text-rose-200 rounded-lg py-3 text-xs font-mono uppercase tracking-[0.2em] hover:bg-rose-500/10">
+          <button className="w-full border border-red-600 text-rose-200 rounded-sm py-3 text-xs font-mono uppercase tracking-[0.2em] hover:bg-red-950/50">
             Add to Blacklist
           </button>
         </div>

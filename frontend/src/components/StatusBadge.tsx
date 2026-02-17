@@ -3,22 +3,25 @@ import React from "react";
 interface StatusBadgeProps {
   label: string;
   tone?: "active" | "pending" | "critical" | "info";
+  className?: string;
 }
 
-export function StatusBadge({ label, tone = "info" }: StatusBadgeProps) {
+export function StatusBadge({ label, tone = "info", className = "" }: StatusBadgeProps) {
+  const text = String(label ?? "").replace(/_/g, " ");
   const toneClass =
     tone === "active"
       ? "status-active"
       : tone === "pending"
         ? "status-pending"
         : tone === "critical"
-          ? "status-critical"
-          : "text-sky-300 bg-sky-950/50 border-sky-800/60";
+          ? "status-failed"
+          : "text-blue-400 bg-blue-950/50 border-blue-800";
 
   return (
-    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs uppercase tracking-[0.2em] font-mono ${toneClass}`}>
-      <span className="w-1.5 h-1.5 rounded-full bg-current" />
-      {label}
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider border ${toneClass} ${className}`}
+    >
+      {text}
     </span>
   );
 }

@@ -78,9 +78,9 @@ export default function AdminReports() {
                     <span>{item.name}</span>
                     <span className="text-xs font-mono uppercase tracking-[0.2em]">{percent}%</span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-slate-800/80">
+                  <div className="h-2 w-full rounded-sm bg-slate-800/80">
                     <div
-                      className="h-2 rounded-full bg-gradient-to-r from-emerald-400/70 to-sky-400/70"
+                      className="h-2 rounded-sm bg-blue-500/70"
                       style={{ width: `${percent}%` }}
                     />
                   </div>

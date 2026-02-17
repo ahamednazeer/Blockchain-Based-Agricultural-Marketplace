@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Wallet, Leaf, Storefront, Circuitry } from "@phosphor-icons/react";
+import { Leaf, ShieldCheck, Wallet } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 import { connectWallet, signMessage } from "@/lib/wallet";
 
@@ -92,152 +92,85 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[color:var(--color-background)] text-slate-100 relative overflow-hidden">
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center relative"
+      style={{
+        backgroundImage: "linear-gradient(to bottom right, #0f172a, #1e293b)",
+      }}
+    >
+      <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" />
       <div className="scanlines" />
-      <div className="absolute inset-0 grid-glow" />
 
-      <main className="relative z-10 max-w-6xl mx-auto px-6 py-16">
-        <header className="flex flex-wrap items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500/40 to-sky-500/30 flex items-center justify-center">
-              <Circuitry size={26} weight="duotone" className="text-emerald-200" />
-            </div>
-            <div>
-              <p className="text-xs font-mono uppercase tracking-[0.3em] text-slate-400">AgriChain</p>
-              <p className="text-lg font-bold">Blockchain Marketplace</p>
-            </div>
+      <div className="relative z-10 w-full max-w-md mx-4">
+        <div className="bg-slate-900/90 border border-slate-700 rounded-sm p-8 backdrop-blur-md">
+          <div className="flex flex-col items-center mb-8">
+            <Leaf size={48} weight="duotone" className="text-blue-400 mb-4" />
+            <h1 className="text-3xl font-chivo font-bold uppercase tracking-wider text-center">
+              AgriChain Marketplace
+            </h1>
+            <p className="text-slate-400 text-sm mt-2">Blockchain Based Agricultural Trading Platform</p>
           </div>
-          <div className="flex items-center gap-3">
+
+          {status === "error" && (
+            <div className="bg-red-950/50 border border-red-800 rounded-sm p-3 mb-4 text-sm text-red-400">
+              {message}
+            </div>
+          )}
+
+          {notApproved && (
+            <div className="bg-yellow-950/50 border border-yellow-800 rounded-sm p-3 mb-4 text-sm text-yellow-400">
+              Your wallet is registered but still pending admin approval.
+            </div>
+          )}
+
+          <div className="space-y-3" data-testid="wallet-login-options">
+            <button
+              type="button"
+              onClick={() => router.push("/admin/login")}
+              className="w-full bg-slate-800 hover:bg-slate-700 text-white rounded-sm font-medium tracking-wide uppercase text-sm px-4 py-3 transition-all duration-150 border border-slate-700"
+            >
+              <span className="inline-flex items-center gap-2">
+                <ShieldCheck size={18} weight="duotone" />
+                Admin Login
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleLogin}
+              disabled={status === "loading"}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-sm font-medium tracking-wide uppercase text-sm px-4 py-3 shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="inline-flex items-center gap-2">
+                <Wallet size={18} weight="duotone" />
+                {status === "loading" ? "Connecting..." : "MetaMask Login (Farmer / Buyer)"}
+              </span>
+            </button>
+
             <Link
               href="/register"
-              className="px-4 py-2 text-xs font-mono uppercase tracking-[0.3em] border border-slate-700/80 rounded-full hover:border-emerald-400/60"
+              className="w-full inline-flex justify-center bg-slate-700 hover:bg-slate-600 text-white rounded-sm font-medium tracking-wide uppercase text-sm px-4 py-3 transition-all duration-150"
             >
-              Register
+              Register New Account
             </Link>
           </div>
-        </header>
 
-        <section className="mt-16 grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 items-center">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 text-emerald-200 text-xs font-mono uppercase tracking-[0.2em]">
-              <ShieldCheck size={16} weight="duotone" />
-              Admin-Governed Marketplace
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-              Verified crops. Transparent trades. <span className="text-gradient">On-chain trust.</span>
-            </h1>
-            <p className="text-slate-300 text-lg">
-              AgriChain synchronizes farmer listings, admin approvals, and buyer purchases with Ganache-powered smart contracts.
-              Every crop, every transaction, every ledger entry is immutable and auditable.
-            </p>
-            <div className="flex flex-wrap items-center gap-4">
-              <button
-                onClick={handleLogin}
-                disabled={status === "loading"}
-                className="hud-panel px-6 py-3 text-sm font-mono uppercase tracking-[0.2em] text-emerald-200 border border-emerald-400/40 hover:border-emerald-300/70 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <span className="flex items-center gap-2">
-                  <Wallet size={18} weight="duotone" />
-                  {status === "loading" ? "Connecting..." : "Connect MetaMask (Farmer/Buyer)"}
-                </span>
-              </button>
-            </div>
-            {wallet && (
-              <p className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400">
-                Wallet connected: {wallet}
-              </p>
-            )}
-            {status === "error" && (
-              <p className="text-xs font-mono uppercase tracking-[0.2em] text-rose-300">
-                {message}
-              </p>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-              <div className="hud-card">
-                <p className="hud-label mb-2">Governance</p>
-                <p className="text-sm text-slate-300">Admin approvals for users, listings, and emergency pause control.</p>
-              </div>
-              <div className="hud-card">
-                <p className="hud-label mb-2">Listings</p>
-                <p className="text-sm text-slate-300">Dual storage: metadata in MongoDB, price + ownership on-chain.</p>
-              </div>
-              <div className="hud-card">
-                <p className="hud-label mb-2">Ledger</p>
-                <p className="text-sm text-slate-300">Immutable CropListed + CropPurchased events, verified in seconds.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="hud-panel p-6 space-y-5 animate-slide-up">
-            <div>
-              <p className="hud-label">Secure Login</p>
-              <h2 className="text-2xl font-bold mt-2">Role-Based Access</h2>
-              <p className="text-slate-400 mt-2 text-sm">
-                Farmers and buyers sign in with MetaMask. Admins use secure credentials to validate every account before trading begins.
-              </p>
-            </div>
-            {notApproved && (
-              <div className="hud-card border border-amber-400/50 bg-amber-500/10 text-amber-100">
-                <p className="text-sm font-semibold">Approval Pending</p>
-                <p className="text-xs text-amber-200/80 mt-2">
-                  Your wallet is registered but not yet approved by the admin. Please wait for activation, then sign in again.
-                </p>
-              </div>
-            )}
-            <div className="space-y-4">
-              <button
-                onClick={() => router.push("/admin/login")}
-                className="w-full border border-slate-700/70 rounded-lg px-4 py-3 text-left hover:border-sky-400/60"
-              >
-                <div className="flex items-center gap-3">
-                  <ShieldCheck size={18} className="text-violet-300" weight="duotone" />
-                  <div>
-                    <p className="text-sm font-semibold">Admin</p>
-                    <p className="text-xs text-slate-400 font-mono uppercase tracking-[0.2em]">Username + password</p>
-                  </div>
-                </div>
-              </button>
-              <button
-                onClick={handleLogin}
-                disabled={status === "loading"}
-                className="w-full border border-slate-700/70 rounded-lg px-4 py-3 text-left hover:border-emerald-400/60 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <div className="flex items-center gap-3">
-                  <Leaf size={18} className="text-emerald-300" weight="duotone" />
-                  <div>
-                    <p className="text-sm font-semibold">Farmer</p>
-                    <p className="text-xs text-slate-400 font-mono uppercase tracking-[0.2em]">List crops + manage inventory</p>
-                  </div>
-                </div>
-              </button>
-              <button
-                onClick={handleLogin}
-                disabled={status === "loading"}
-                className="w-full border border-slate-700/70 rounded-lg px-4 py-3 text-left hover:border-sky-400/60 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <div className="flex items-center gap-3">
-                  <Storefront size={18} className="text-sky-300" weight="duotone" />
-                  <div>
-                    <p className="text-sm font-semibold">Buyer</p>
-                    <p className="text-xs text-slate-400 font-mono uppercase tracking-[0.2em]">Purchase verified crops</p>
-                  </div>
-                </div>
-              </button>
-            </div>
-            <div className="flex items-center justify-between text-xs font-mono uppercase tracking-[0.2em] text-slate-400">
-              <span>Ganache Ready</span>
-              <span>
+          <div className="mt-6 p-4 bg-slate-950/50 border border-slate-800 rounded-sm">
+            <p className="text-xs text-slate-500 uppercase tracking-wider mb-2 font-mono">Connection Status:</p>
+            <div className="space-y-1 text-xs font-mono text-slate-400 break-all">
+              <div>
+                MetaMask:{" "}
                 {metamaskStatus === "connected"
-                  ? "MetaMask Connected"
+                  ? "Connected"
                   : metamaskStatus === "missing"
-                    ? "MetaMask Not Found"
-                    : "MetaMask Disconnected"}
-              </span>
+                    ? "Not Found"
+                    : "Disconnected"}
+              </div>
+              {wallet && <div>Wallet: {wallet}</div>}
             </div>
           </div>
-        </section>
-      </main>
+        </div>
+      </div>
     </div>
   );
 }

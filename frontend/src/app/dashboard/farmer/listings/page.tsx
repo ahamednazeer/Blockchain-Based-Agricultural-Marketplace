@@ -64,7 +64,7 @@ export default function FarmerListings() {
                         href={imageUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-sky-200 hover:text-sky-100 underline"
+                        className="text-blue-400 hover:text-blue-300 underline"
                       >
                         Images ({images.length})
                       </a>
@@ -76,7 +76,7 @@ export default function FarmerListings() {
                         href={certUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-emerald-200 hover:text-emerald-100 underline"
+                        className="text-green-400 hover:text-green-300 underline"
                       >
                         Certificate
                       </a>

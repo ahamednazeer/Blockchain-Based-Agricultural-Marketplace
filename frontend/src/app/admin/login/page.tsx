@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
               </p>
             </div>
             {status === "error" && (
-              <div className="rounded-lg border px-4 py-3 text-sm border-rose-500/40 text-rose-200 bg-rose-500/10">
+              <div className="rounded-sm border px-4 py-3 text-sm border-rose-500/40 text-rose-200 bg-rose-500/10">
                 {message}
               </div>
             )}
@@ -77,7 +77,7 @@ export default function AdminLoginPage() {
               <div className="relative mt-2">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                 <input
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-3 text-sm text-slate-100 focus:border-sky-400/60 outline-none"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-sm pl-10 pr-4 py-3 text-sm text-slate-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                   placeholder="Enter admin username"
                   value={form.username}
                   onChange={(e) => updateField("username", e.target.value)}
@@ -90,7 +90,7 @@ export default function AdminLoginPage() {
                 <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                 <input
                   type="password"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-3 text-sm text-slate-100 focus:border-sky-400/60 outline-none"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-sm pl-10 pr-4 py-3 text-sm text-slate-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                   placeholder="Enter admin password"
                   value={form.password}
                   onChange={(e) => updateField("password", e.target.value)}
@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
               </div>
             </div>
             <button
-              className="w-full bg-sky-500/20 border border-sky-500/40 text-sky-200 rounded-lg py-3 text-sm font-mono uppercase tracking-[0.2em] hover:bg-sky-500/30 disabled:opacity-60"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-sm font-medium tracking-wide uppercase text-sm px-4 py-3 shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={status === "loading"}
             >
               {status === "loading" ? "Signing in..." : "Enter Admin Console"}
@@ -108,8 +108,8 @@ export default function AdminLoginPage() {
           <aside className="space-y-6">
             <div className="hud-card">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-slate-900 flex items-center justify-center">
-                  <ShieldCheck size={18} className="text-violet-300" weight="duotone" />
+                <div className="h-10 w-10 rounded-sm bg-slate-900 border border-slate-700 flex items-center justify-center">
+                  <ShieldCheck size={18} className="text-blue-300" weight="duotone" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold">Admin Only</p>

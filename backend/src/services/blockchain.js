@@ -427,6 +427,43 @@ export async function listCropOnChain(crop) {
   return { txHash: receipt.hash, cropId };
 }
 
+export async function getOnChainCrop(contractCropId) {
+  const parsedId = Number(contractCropId);
+  if (!Number.isFinite(parsedId) || parsedId <= 0) {
+    return null;
+  }
+
+  const rpcUrl = process.env.GANACHE_RPC_URL;
+  const meta = loadContractMeta();
+  const contractAddress = process.env.CONTRACT_ADDRESS || meta?.address;
+  const abi = meta?.abi;
+
+  if (!rpcUrl || !contractAddress || !abi) {
+    return null;
+  }
+
+  try {
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const contract = new ethers.Contract(contractAddress, abi, provider);
+    const crop = await contract.crops(parsedId);
+
+    const onChainId = Number(crop?.id ?? crop?.[0] ?? 0);
+    if (!Number.isFinite(onChainId) || onChainId <= 0) {
+      return null;
+    }
+
+    return {
+      cropId: onChainId,
+      farmer: crop?.farmer ?? crop?.[1] ?? null,
+      quantity: crop?.quantity ?? crop?.[3] ?? 0n,
+      isSold: Boolean(crop?.isSold ?? crop?.[5] ?? false),
+      offchainId: String(crop?.offchainId ?? crop?.[7] ?? ""),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function initBlockchainListener() {
   const rpcUrl = process.env.GANACHE_RPC_URL;
   const meta = loadContractMeta();

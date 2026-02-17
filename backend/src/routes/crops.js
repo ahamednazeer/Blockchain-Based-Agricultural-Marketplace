@@ -2,7 +2,7 @@ import express from "express";
 import Crop from "../models/Crop.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { auth, requireRole } from "../middleware/auth.js";
-import { listCropOnChain } from "../services/blockchain.js";
+import { getOnChainCrop, listCropOnChain } from "../services/blockchain.js";
 
 const router = express.Router();
 
@@ -146,7 +146,15 @@ router.post(
       return res.status(404).json({ error: "Crop not found" });
     }
 
-    if (!crop.contractCropId) {
+    let needsPublish = !crop.contractCropId;
+    if (!needsPublish) {
+      const onChainCrop = await getOnChainCrop(crop.contractCropId);
+      const offchainMatches =
+        !onChainCrop?.offchainId || String(onChainCrop.offchainId) === String(crop._id);
+      needsPublish = !onChainCrop || !offchainMatches;
+    }
+
+    if (needsPublish) {
       const onchain = await listCropOnChain(crop);
       crop.contractCropId = onchain.cropId || crop.contractCropId;
       crop.txHash = onchain.txHash;

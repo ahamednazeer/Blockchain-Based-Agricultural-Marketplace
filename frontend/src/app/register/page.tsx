@@ -85,9 +85,9 @@ export default function RegisterPage() {
             </div>
             {status && (
               <div
-                className={`rounded-lg border px-4 py-3 text-sm ${
+                className={`rounded-sm border px-4 py-3 text-sm ${
                   status === "success"
-                    ? "border-emerald-500/40 text-emerald-200 bg-emerald-500/10"
+                    ? "border-emerald-500/40 text-green-400 bg-green-950/50"
                     : "border-rose-500/40 text-rose-200 bg-rose-500/10"
                 }`}
               >
@@ -99,7 +99,7 @@ export default function RegisterPage() {
               <div className="relative mt-2">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                 <input
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-3 text-sm text-slate-100 focus:border-emerald-400/60 outline-none"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-sm pl-10 pr-4 py-3 text-sm text-slate-100 focus:border-green-600 outline-none"
                   placeholder="Enter your name"
                   value={form.name}
                   onChange={(e) => updateField("name", e.target.value)}
@@ -111,7 +111,7 @@ export default function RegisterPage() {
               <div className="relative mt-2">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                 <input
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-3 text-sm text-slate-100 focus:border-emerald-400/60 outline-none"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-sm pl-10 pr-4 py-3 text-sm text-slate-100 focus:border-green-600 outline-none"
                   placeholder="+91 90000 00000"
                   value={form.contact}
                   onChange={(e) => updateField("contact", e.target.value)}
@@ -123,7 +123,7 @@ export default function RegisterPage() {
               <div className="relative mt-2">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                 <input
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-3 text-sm text-slate-100 focus:border-emerald-400/60 outline-none"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-sm pl-10 pr-4 py-3 text-sm text-slate-100 focus:border-green-600 outline-none"
                   placeholder="City / Region"
                   value={form.location}
                   onChange={(e) => updateField("location", e.target.value)}
@@ -136,8 +136,8 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => updateField("role", "FARMER")}
-                  className={`border rounded-lg px-4 py-3 text-left hover:border-emerald-400/60 ${
-                    form.role === "FARMER" ? "border-emerald-400/60 bg-emerald-500/10" : "border-slate-800"
+                  className={`border rounded-sm px-4 py-3 text-left hover:border-green-600 ${
+                    form.role === "FARMER" ? "border-green-600 bg-green-950/50" : "border-slate-700"
                   }`}
                 >
                   <p className="text-sm font-semibold">Farmer</p>
@@ -146,8 +146,8 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => updateField("role", "BUYER")}
-                  className={`border rounded-lg px-4 py-3 text-left hover:border-sky-400/60 ${
-                    form.role === "BUYER" ? "border-sky-400/60 bg-sky-500/10" : "border-slate-800"
+                  className={`border rounded-sm px-4 py-3 text-left hover:border-blue-600 ${
+                    form.role === "BUYER" ? "border-blue-600 bg-blue-950/50" : "border-slate-700"
                   }`}
                 >
                   <p className="text-sm font-semibold">Buyer</p>
@@ -160,7 +160,7 @@ export default function RegisterPage() {
               <div className="relative mt-2">
                 <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                 <input
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-3 text-sm text-slate-100 focus:border-emerald-400/60 outline-none"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-sm pl-10 pr-4 py-3 text-sm text-slate-100 focus:border-green-600 outline-none"
                   placeholder="0x0000..."
                   value={form.walletAddress}
                   onChange={(e) => updateField("walletAddress", e.target.value)}
@@ -169,12 +169,12 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={handleConnect}
-                className="mt-3 text-xs font-mono uppercase tracking-[0.2em] text-slate-400 hover:text-emerald-200"
+                className="mt-3 text-xs font-mono uppercase tracking-[0.2em] text-slate-400 hover:text-green-400"
               >
                 Connect MetaMask
               </button>
             </div>
-            <button className="w-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 rounded-lg py-3 text-sm font-mono uppercase tracking-[0.2em] hover:bg-emerald-500/30">
+            <button className="w-full bg-green-950/50 border border-green-600 text-green-400 rounded-sm py-3 text-sm font-mono uppercase tracking-[0.2em] hover:bg-green-900/60">
               Submit for Approval
             </button>
           </form>
@@ -182,8 +182,8 @@ export default function RegisterPage() {
           <aside className="space-y-6">
             <div className="hud-card">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-slate-900 flex items-center justify-center">
-                  <ShieldCheck size={18} className="text-sky-300" weight="duotone" />
+                <div className="h-10 w-10 rounded-sm bg-slate-900 flex items-center justify-center">
+                  <ShieldCheck size={18} className="text-blue-300" weight="duotone" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold">Admin Validation</p>

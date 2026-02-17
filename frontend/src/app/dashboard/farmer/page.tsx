@@ -68,7 +68,7 @@ export default function FarmerDashboard() {
               <div className="text-sm text-slate-400">No recent listings.</div>
             )}
             {recent.map((crop: any) => (
-              <div key={crop.id || crop._id} className="flex flex-wrap items-center justify-between gap-3 border border-slate-800/70 rounded-lg px-4 py-3">
+              <div key={crop.id || crop._id} className="flex flex-wrap items-center justify-between gap-3 border border-slate-700/60 rounded-sm px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold">{crop.name}</p>
                   <p className="text-xs text-slate-400 font-mono uppercase tracking-[0.2em]">{crop.id || crop._id} · {crop.category}</p>

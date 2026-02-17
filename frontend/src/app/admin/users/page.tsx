@@ -87,14 +87,14 @@ export default function AdminUsers() {
                       <button
                         disabled={busyId === (row.id || row._id)}
                         onClick={() => handleAction(row.id || row._id, "approve")}
-                        className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-emerald-400/60 rounded-full text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-50"
+                        className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-green-600 rounded-sm text-green-400 hover:bg-green-950/50 disabled:opacity-50"
                       >
                         Approve
                       </button>
                       <button
                         disabled={busyId === (row.id || row._id)}
                         onClick={() => handleAction(row.id || row._id, "reject")}
-                        className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-rose-400/60 rounded-full text-rose-200 hover:bg-rose-500/10 disabled:opacity-50"
+                        className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-red-600 rounded-sm text-red-400 hover:bg-red-950/50 disabled:opacity-50"
                       >
                         Reject
                       </button>
@@ -103,7 +103,7 @@ export default function AdminUsers() {
                     <button
                       disabled={busyId === (row.id || row._id)}
                       onClick={() => handleAction(row.id || row._id, "suspend")}
-                      className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-amber-400/60 rounded-full text-amber-200 hover:bg-amber-500/10 disabled:opacity-50"
+                      className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-yellow-600 rounded-sm text-yellow-400 hover:bg-yellow-950/50 disabled:opacity-50"
                     >
                       Suspend
                     </button>

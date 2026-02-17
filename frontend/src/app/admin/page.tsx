@@ -75,14 +75,14 @@ export default function AdminOverview() {
               <div className="text-sm text-slate-400">No pending users.</div>
             )}
             {pending.map((user) => (
-              <div key={user.id || user._id} className="flex flex-wrap items-center justify-between gap-3 border border-slate-800/70 rounded-lg px-4 py-3">
+              <div key={user.id || user._id} className="flex flex-wrap items-center justify-between gap-3 border border-slate-700/60 rounded-sm px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold">{user.name}</p>
                   <p className="text-xs text-slate-400 font-mono uppercase tracking-[0.2em]">{user.role} · {user.location || "Unknown"}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-emerald-400/60 rounded-full text-emerald-200 hover:bg-emerald-500/10">Approve</button>
-                  <button className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-rose-400/60 rounded-full text-rose-200 hover:bg-rose-500/10">Reject</button>
+                  <button className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-green-600 rounded-sm text-green-400 hover:bg-green-950/50">Approve</button>
+                  <button className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-red-600 rounded-sm text-red-400 hover:bg-red-950/50">Reject</button>
                 </div>
               </div>
             ))}
@@ -109,13 +109,13 @@ export default function AdminOverview() {
           </div>
           <div className="hud-card">
             <div className="flex items-center gap-3">
-              <ShieldCheck size={20} className="text-sky-300" weight="duotone" />
+              <ShieldCheck size={20} className="text-blue-300" weight="duotone" />
               <div>
                 <p className="text-sm font-semibold">Emergency Controls</p>
                 <p className="text-xs text-slate-400 font-mono uppercase tracking-[0.2em]">Pause or blacklist wallets</p>
               </div>
             </div>
-            <button className="mt-4 w-full border border-amber-400/60 text-amber-200 rounded-lg py-2 text-xs font-mono uppercase tracking-[0.2em] hover:bg-amber-500/10">
+            <button className="mt-4 w-full border border-yellow-600 text-amber-200 rounded-sm py-2 text-xs font-mono uppercase tracking-[0.2em] hover:bg-yellow-950/50">
               Pause Contract
             </button>
           </div>

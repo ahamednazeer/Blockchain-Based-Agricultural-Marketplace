@@ -7,7 +7,6 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { api } from "@/lib/api";
 import { getContract } from "@/lib/contract";
 import { ethers } from "ethers";
-import { AuthGate } from "@/components/AuthGate";
 import { resolveAssetUrl } from "@/lib/format";
 import { formatQuantityValue, getUnitMeta, parseToBaseUnits, stepForScale } from "@/lib/units";
 
@@ -742,12 +741,8 @@ export default function MarketplacePage() {
   };
 
   return (
-    <AuthGate allowRoles={["BUYER", "ADMIN"]}>
-      <div className="min-h-screen bg-[color:var(--color-background)] text-slate-100 relative">
-      <div className="scanlines" />
-      <div className="absolute inset-0 grid-glow" />
-
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-14 space-y-10">
+    <>
+      <div className="max-w-6xl mx-auto px-6 py-10 space-y-10">
         <header className="space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div>
@@ -760,13 +755,13 @@ export default function MarketplacePage() {
             <div className="flex items-center gap-3">
               <Link
                 href="/dashboard/buyer/orders"
-                className="px-4 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-slate-700/70 rounded-full hover:border-sky-400/70"
+                className="px-4 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-slate-700/70 rounded-sm hover:border-blue-600"
               >
                 My Orders
               </Link>
               <Link
                 href="/ledger"
-                className="px-4 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-emerald-500/60 rounded-full text-emerald-200 hover:bg-emerald-500/10"
+                className="px-4 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-green-600 rounded-sm text-green-400 hover:bg-green-950/50"
               >
                 View Ledger
               </Link>
@@ -777,7 +772,7 @@ export default function MarketplacePage() {
             <div>
               <label className="hud-label">Search</label>
               <input
-                className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+                className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
                 placeholder="Search crops or categories"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
@@ -786,7 +781,7 @@ export default function MarketplacePage() {
             <div>
               <label className="hud-label">Sort</label>
               <select
-                className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+                className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value)}
               >
@@ -804,7 +799,7 @@ export default function MarketplacePage() {
                   setUnitFilter("All");
                   setSortBy("recent");
                 }}
-                className="border border-slate-700/70 text-slate-300 rounded-lg py-3 text-xs font-mono uppercase tracking-[0.2em] hover:border-slate-400"
+                className="border border-slate-700/70 text-slate-300 rounded-sm py-3 text-xs font-mono uppercase tracking-[0.2em] hover:border-slate-400"
               >
                 Clear
               </button>
@@ -818,7 +813,7 @@ export default function MarketplacePage() {
           </div>
         )}
         {action.status && (
-          <div className="hud-card border border-emerald-500/40 text-emerald-200">
+          <div className="hud-card border border-green-600 text-green-400">
             {action.status}
           </div>
         )}
@@ -828,7 +823,7 @@ export default function MarketplacePage() {
           </div>
         )}
         {cartAction.status && (
-          <div className="hud-card border border-emerald-500/40 text-emerald-200">
+          <div className="hud-card border border-green-600 text-green-400">
             {cartAction.status}
           </div>
         )}
@@ -862,9 +857,9 @@ export default function MarketplacePage() {
                 <p className="hud-label">Category</p>
                 <button
                   onClick={() => setCategoryFilter("All")}
-                  className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-mono uppercase tracking-[0.2em] ${
+                  className={`w-full text-left px-3 py-2 rounded-sm border text-xs font-mono uppercase tracking-[0.2em] ${
                     categoryFilter === "All"
-                      ? "border-sky-400/70 text-sky-200 bg-sky-500/10"
+                      ? "border-blue-600 text-blue-400 bg-blue-950/50"
                       : "border-slate-700/70 text-slate-300 hover:border-slate-500/70"
                   }`}
                 >
@@ -874,9 +869,9 @@ export default function MarketplacePage() {
                   <button
                     key={category}
                     onClick={() => setCategoryFilter(category)}
-                    className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-mono uppercase tracking-[0.2em] ${
+                    className={`w-full text-left px-3 py-2 rounded-sm border text-xs font-mono uppercase tracking-[0.2em] ${
                       categoryFilter === category
-                        ? "border-sky-400/70 text-sky-200 bg-sky-500/10"
+                        ? "border-blue-600 text-blue-400 bg-blue-950/50"
                         : "border-slate-700/70 text-slate-300 hover:border-slate-500/70"
                     }`}
                   >
@@ -889,9 +884,9 @@ export default function MarketplacePage() {
                 <p className="hud-label">Unit</p>
                 <button
                   onClick={() => setUnitFilter("All")}
-                  className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-mono uppercase tracking-[0.2em] ${
+                  className={`w-full text-left px-3 py-2 rounded-sm border text-xs font-mono uppercase tracking-[0.2em] ${
                     unitFilter === "All"
-                      ? "border-emerald-400/70 text-emerald-200 bg-emerald-500/10"
+                      ? "border-green-600 text-green-400 bg-green-950/50"
                       : "border-slate-700/70 text-slate-300 hover:border-slate-500/70"
                   }`}
                 >
@@ -901,9 +896,9 @@ export default function MarketplacePage() {
                   <button
                     key={unit}
                     onClick={() => setUnitFilter(unit)}
-                    className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-mono uppercase tracking-[0.2em] ${
+                    className={`w-full text-left px-3 py-2 rounded-sm border text-xs font-mono uppercase tracking-[0.2em] ${
                       unitFilter === unit
-                        ? "border-emerald-400/70 text-emerald-200 bg-emerald-500/10"
+                        ? "border-green-600 text-green-400 bg-green-950/50"
                         : "border-slate-700/70 text-slate-300 hover:border-slate-500/70"
                     }`}
                   >
@@ -944,7 +939,7 @@ export default function MarketplacePage() {
                   return (
                     <article key={crop.id || crop._id} className="hud-panel p-5 space-y-4 min-w-0 overflow-hidden">
                       <div className="flex gap-4 min-w-0">
-                        <div className="h-24 w-28 flex-shrink-0 rounded-lg border border-slate-800/70 overflow-hidden bg-slate-900/60">
+                        <div className="h-24 w-28 flex-shrink-0 rounded-sm border border-slate-700/60 overflow-hidden bg-slate-900/60">
                           {imageUrl ? (
                             <img
                               src={imageUrl}
@@ -1011,7 +1006,7 @@ export default function MarketplacePage() {
                     <button
                       disabled={inCart || outOfStock}
                       onClick={() => addToCart(crop)}
-                      className="px-3 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-slate-600/60 rounded-full text-slate-200 hover:border-slate-400 disabled:opacity-50"
+                      className="px-3 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-slate-600/60 rounded-sm text-slate-200 hover:border-slate-400 disabled:opacity-50"
                     >
                       {outOfStock ? "Out of Stock" : inCart ? "In Cart" : "Add to Cart"}
                     </button>
@@ -1024,7 +1019,7 @@ export default function MarketplacePage() {
                                 }
                                 openAddressFlow({ type: "buy", crop });
                               }}
-                              className="px-4 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-sky-500/50 rounded-full text-sky-200 hover:bg-sky-500/10 disabled:opacity-50"
+                              className="px-4 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-blue-600 rounded-sm text-blue-400 hover:bg-blue-950/50 disabled:opacity-50"
                             >
                               {action.id === (crop._id || crop.id) ? "Processing" : "Buy Full Lot"}
                             </button>
@@ -1033,7 +1028,7 @@ export default function MarketplacePage() {
                                 href={certUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-xs font-mono uppercase tracking-[0.2em] text-emerald-200 underline"
+                                className="text-xs font-mono uppercase tracking-[0.2em] text-green-400 underline"
                               >
                                 Certificate
                               </a>
@@ -1052,7 +1047,7 @@ export default function MarketplacePage() {
             <div className="hud-card">
               <div className="flex items-center justify-between gap-2 text-slate-200">
                 <div className="flex items-center gap-2">
-                  <ShoppingCart size={18} className="text-sky-300" weight="duotone" />
+                  <ShoppingCart size={18} className="text-blue-300" weight="duotone" />
                   <p className="text-sm font-semibold">Your Cart</p>
                 </div>
                 <span className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400">{cartItems.length} items</span>
@@ -1082,7 +1077,7 @@ export default function MarketplacePage() {
                     return (
                       <div
                         key={item.id}
-                        className={`border border-slate-800/70 rounded-lg px-3 py-2 space-y-2 ${
+                        className={`border border-slate-700/60 rounded-sm px-3 py-2 space-y-2 ${
                           isOut ? "opacity-50" : ""
                         }`}
                       >
@@ -1124,7 +1119,7 @@ export default function MarketplacePage() {
                               max={availableDisplay || 0}
                               step={stepForScale(item.unitScale)}
                               disabled={isOut}
-                              className="w-20 bg-slate-950 border border-slate-800 rounded-md px-2 py-1 text-xs"
+                              className="w-20 bg-slate-950 border border-slate-700 rounded-sm px-2 py-1 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                               value={item.unitsDisplay ?? ""}
                               onChange={(event) => updateCartUnits(item.id, event.target.value)}
                             />
@@ -1180,14 +1175,14 @@ export default function MarketplacePage() {
                         cartSummary.hasPending
                       }
                       onClick={beginCheckout}
-                      className="flex-1 border border-emerald-400/60 text-emerald-200 rounded-lg py-2 text-xs font-mono uppercase tracking-[0.2em] hover:bg-emerald-500/10 disabled:opacity-50"
+                      className="flex-1 border border-green-600 text-green-400 rounded-sm py-2 text-xs font-mono uppercase tracking-[0.2em] hover:bg-green-950/50 disabled:opacity-50"
                     >
                       {cartAction.busy ? "Processing..." : "Checkout"}
                     </button>
                     <button
                       disabled={cartAction.busy}
                       onClick={clearCart}
-                      className="border border-slate-600/60 text-slate-300 rounded-lg py-2 px-3 text-xs font-mono uppercase tracking-[0.2em] hover:border-slate-400 disabled:opacity-50"
+                      className="border border-slate-600/60 text-slate-300 rounded-sm py-2 px-3 text-xs font-mono uppercase tracking-[0.2em] hover:border-slate-400 disabled:opacity-50"
                     >
                       Clear
                     </button>
@@ -1198,11 +1193,10 @@ export default function MarketplacePage() {
           </aside>
         </section>
       </div>
-      </div>
 
       {addressModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6 py-10">
-          <div className="w-full max-w-3xl bg-slate-950/95 border border-slate-800 rounded-2xl p-6 space-y-6">
+          <div className="w-full max-w-3xl bg-slate-950/95 border border-slate-700 rounded-sm p-6 space-y-6">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="hud-label">Checkout</p>
@@ -1216,14 +1210,14 @@ export default function MarketplacePage() {
                   setAddressModalOpen(false);
                   setPendingAction(null);
                 }}
-                className="text-xs font-mono uppercase tracking-[0.2em] border border-slate-700/60 rounded-full px-4 py-2 text-slate-200 hover:border-slate-400"
+                className="text-xs font-mono uppercase tracking-[0.2em] border border-slate-700/60 rounded-sm px-4 py-2 text-slate-200 hover:border-slate-400"
               >
                 Close
               </button>
             </div>
 
             {addressError && (
-              <div className="rounded-lg border border-rose-500/40 text-rose-200 bg-rose-500/10 px-4 py-3 text-sm">
+              <div className="rounded-sm border border-rose-500/40 text-rose-200 bg-rose-500/10 px-4 py-3 text-sm">
                 {addressError}
               </div>
             )}
@@ -1241,10 +1235,10 @@ export default function MarketplacePage() {
                     {addresses.map((addr) => (
                       <label
                         key={addr._id}
-                        className={`border rounded-lg p-4 cursor-pointer transition ${
+                        className={`border rounded-sm p-4 cursor-pointer transition ${
                           String(addr._id) === String(selectedAddressId)
-                            ? "border-sky-500/60 bg-sky-500/10"
-                            : "border-slate-800/70 hover:border-slate-600/80"
+                            ? "border-blue-600 bg-blue-950/50"
+                            : "border-slate-700/60 hover:border-slate-600/80"
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -1259,7 +1253,7 @@ export default function MarketplacePage() {
                             <div className="flex items-center gap-2">
                               <p className="font-semibold">{addr.label || "Address"}</p>
                               {addr.isDefault && (
-                                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-emerald-200">
+                                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-green-400">
                                   Default
                                 </span>
                               )}
@@ -1328,7 +1322,7 @@ export default function MarketplacePage() {
                   <button
                     disabled={!selectedAddressId}
                     onClick={() => selectedAddressId && proceedWithAddress(selectedAddressId)}
-                    className="px-5 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-emerald-400/60 text-emerald-200 rounded-lg hover:bg-emerald-500/10 disabled:opacity-50"
+                    className="px-5 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-green-600 text-green-400 rounded-sm hover:bg-green-950/50 disabled:opacity-50"
                   >
                     Deliver to this address
                   </button>
@@ -1340,7 +1334,7 @@ export default function MarketplacePage() {
                   <div>
                     <label className="hud-label">Label</label>
                     <select
-                      className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+                      className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
                       value={addressForm.label}
                       onChange={(e) => setAddressForm((prev) => ({ ...prev, label: e.target.value }))}
                     >
@@ -1354,7 +1348,7 @@ export default function MarketplacePage() {
                   <div>
                     <label className="hud-label">Recipient Name</label>
                     <input
-                      className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+                      className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
                       value={addressForm.recipientName}
                       onChange={(e) => setAddressForm((prev) => ({ ...prev, recipientName: e.target.value }))}
                     />
@@ -1362,7 +1356,7 @@ export default function MarketplacePage() {
                   <div>
                     <label className="hud-label">Phone</label>
                     <input
-                      className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+                      className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
                       value={addressForm.phone}
                       onChange={(e) => setAddressForm((prev) => ({ ...prev, phone: e.target.value }))}
                     />
@@ -1370,7 +1364,7 @@ export default function MarketplacePage() {
                   <div>
                     <label className="hud-label">Line 1</label>
                     <input
-                      className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+                      className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
                       value={addressForm.line1}
                       onChange={(e) => setAddressForm((prev) => ({ ...prev, line1: e.target.value }))}
                     />
@@ -1378,7 +1372,7 @@ export default function MarketplacePage() {
                   <div>
                     <label className="hud-label">Line 2</label>
                     <input
-                      className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+                      className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
                       value={addressForm.line2}
                       onChange={(e) => setAddressForm((prev) => ({ ...prev, line2: e.target.value }))}
                     />
@@ -1386,7 +1380,7 @@ export default function MarketplacePage() {
                   <div>
                     <label className="hud-label">City</label>
                     <input
-                      className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+                      className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
                       value={addressForm.city}
                       onChange={(e) => setAddressForm((prev) => ({ ...prev, city: e.target.value }))}
                     />
@@ -1394,7 +1388,7 @@ export default function MarketplacePage() {
                   <div>
                     <label className="hud-label">State</label>
                     <input
-                      className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+                      className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
                       value={addressForm.state}
                       onChange={(e) => setAddressForm((prev) => ({ ...prev, state: e.target.value }))}
                     />
@@ -1402,7 +1396,7 @@ export default function MarketplacePage() {
                   <div>
                     <label className="hud-label">Postal Code</label>
                     <input
-                      className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+                      className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
                       value={addressForm.postalCode}
                       onChange={(e) => setAddressForm((prev) => ({ ...prev, postalCode: e.target.value }))}
                     />
@@ -1410,7 +1404,7 @@ export default function MarketplacePage() {
                   <div>
                     <label className="hud-label">Country</label>
                     <input
-                      className="mt-2 w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm"
+                      className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
                       value={addressForm.country}
                       onChange={(e) => setAddressForm((prev) => ({ ...prev, country: e.target.value }))}
                     />
@@ -1436,7 +1430,7 @@ export default function MarketplacePage() {
                   <button
                     onClick={addressMode === "edit" ? handleAddressUpdate : handleAddressSave}
                     disabled={addressSaving}
-                    className="px-5 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-emerald-400/60 text-emerald-200 rounded-lg hover:bg-emerald-500/10 disabled:opacity-50"
+                    className="px-5 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-green-600 text-green-400 rounded-sm hover:bg-green-950/50 disabled:opacity-50"
                   >
                     {addressSaving ? "Saving..." : addressMode === "edit" ? "Update Address" : "Save & Continue"}
                   </button>
@@ -1446,6 +1440,6 @@ export default function MarketplacePage() {
           </div>
         </div>
       )}
-    </AuthGate>
+    </>
   );
 }

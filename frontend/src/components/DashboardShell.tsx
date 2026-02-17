@@ -196,141 +196,139 @@ export function DashboardShell({ title, subtitle, role, navItems, children }: Da
   };
 
   return (
-    <div className="min-h-screen bg-[color:var(--color-background)] text-slate-100">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex">
       <div className="scanlines" />
-      <div className="grid-glow min-h-screen">
-        <div className="flex min-h-screen">
-          <aside
-            className="relative border-r border-slate-800/70 bg-slate-950/60 px-5 py-6"
-            style={{ width: isCollapsed ? 88 : sidebarWidth, minWidth: isCollapsed ? 88 : 220, maxWidth: 380 }}
-            onPointerDown={(event) => {
-              if (tryStartResizeFromEdge(event.clientX, event.currentTarget)) {
-                event.preventDefault();
-              }
-            }}
-            onMouseDown={(event) => {
-              if (tryStartResizeFromEdge(event.clientX, event.currentTarget)) {
-                event.preventDefault();
-              }
-            }}
-            onTouchStart={(event) => {
-              const touch = event.touches[0];
-              if (touch && tryStartResizeFromEdge(touch.clientX, event.currentTarget)) {
-                event.preventDefault();
-              }
-            }}
-          >
-            <div className="flex items-center justify-between gap-3 pb-6 border-b border-slate-800/70">
-              <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-emerald-500/30 to-sky-500/20 flex items-center justify-center">
-                  <Cube size={24} weight="duotone" className="text-emerald-300" />
-                </div>
-                {!isCollapsed && (
-                  <div>
-                    <p className="text-sm uppercase tracking-[0.3em] font-mono text-slate-400">AgriChain</p>
-                    <p className="text-base font-bold">Marketplace Grid</p>
-                  </div>
-                )}
+      <div className="flex min-h-screen w-full">
+        <aside
+          className="relative border-r border-slate-800 bg-slate-900 px-3 py-4 h-screen sticky top-0"
+          style={{ width: isCollapsed ? 88 : sidebarWidth, minWidth: isCollapsed ? 88 : 220, maxWidth: 380 }}
+          onPointerDown={(event) => {
+            if (tryStartResizeFromEdge(event.clientX, event.currentTarget)) {
+              event.preventDefault();
+            }
+          }}
+          onMouseDown={(event) => {
+            if (tryStartResizeFromEdge(event.clientX, event.currentTarget)) {
+              event.preventDefault();
+            }
+          }}
+          onTouchStart={(event) => {
+            const touch = event.touches[0];
+            if (touch && tryStartResizeFromEdge(touch.clientX, event.currentTarget)) {
+              event.preventDefault();
+            }
+          }}
+        >
+          <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-sm bg-slate-800 border border-slate-700 flex items-center justify-center">
+                <Cube size={22} weight="duotone" className="text-blue-400" />
               </div>
-              <button
-                onClick={toggleCollapse}
-                className="h-9 w-9 rounded-full border border-slate-700/70 flex items-center justify-center text-slate-300 hover:border-slate-500/80"
-                title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-                type="button"
-              >
-                {isCollapsed ? <CaretDoubleRight size={16} /> : <CaretDoubleLeft size={16} />}
-              </button>
-            </div>
-
-            <div className="mt-6 space-y-6">
-              {!isCollapsed ? (
-                <div className="hud-panel p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-slate-800/80 flex items-center justify-center">
-                      <RoleIcon size={20} className="text-sky-300" weight="duotone" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400">Role</p>
-                      <p className="text-sm font-semibold">{role} Console</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex justify-center">
-                  <div className="h-10 w-10 rounded-full bg-slate-800/80 flex items-center justify-center">
-                    <RoleIcon size={20} className="text-sky-300" weight="duotone" />
-                  </div>
+              {!isCollapsed && (
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] font-mono text-slate-500">AgriChain</p>
+                  <p className="text-sm font-bold">Marketplace Grid</p>
                 </div>
               )}
-
-              <nav className="space-y-2">
-                {navItems.map((item) => {
-                  const isActive = pathname === item.href;
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm font-semibold transition ${
-                        isActive
-                          ? "border-sky-500/60 bg-sky-500/10 text-sky-200"
-                          : "border-transparent text-slate-300 hover:border-slate-700/80 hover:bg-slate-900/60"
-                      }`}
-                    >
-                      <span className="flex items-center gap-3">
-                        <Icon size={18} weight="duotone" />
-                        {!isCollapsed && item.label}
-                      </span>
-                      {item.tag && (
-                        <span className="text-[10px] uppercase tracking-[0.2em] font-mono text-slate-400">
-                          {item.tag}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </nav>
             </div>
-            <div
-              role="separator"
-              aria-orientation="vertical"
-              onPointerDown={startResize}
-              onMouseDown={startResizeMouse}
-              onTouchStart={startResizeTouch}
-              className="absolute right-0 top-0 h-full w-4 cursor-col-resize bg-slate-700/20 hover:bg-slate-700/50 transition z-20"
-              style={{ touchAction: "none" }}
-              title="Drag to resize"
-            />
-          </aside>
+            <button
+              onClick={toggleCollapse}
+              className="h-8 w-8 rounded-sm border border-slate-700 flex items-center justify-center text-slate-300 hover:border-slate-500"
+              title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              type="button"
+            >
+              {isCollapsed ? <CaretDoubleRight size={16} /> : <CaretDoubleLeft size={16} />}
+            </button>
+          </div>
 
-          <main className="flex-1">
-            <header className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/70 bg-slate-950/40 px-8 py-6">
-              <div>
-                <h1 className="text-2xl font-bold uppercase tracking-wider">{title}</h1>
-                <p className="text-sm text-slate-400 mt-1">{subtitle}</p>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="hud-panel px-4 py-2 flex items-center gap-2">
-                  <Wallet size={18} className="text-emerald-300" weight="duotone" />
-                  <span className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400">Wallet</span>
-                  <span className="text-sm font-semibold">{walletLabel}</span>
+          <div className="mt-4 space-y-4">
+            {!isCollapsed ? (
+              <div className="bg-slate-800/40 border border-slate-700/60 rounded-sm p-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-sm bg-slate-900 border border-slate-700 flex items-center justify-center">
+                    <RoleIcon size={18} className="text-blue-400" weight="duotone" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-mono uppercase tracking-[0.2em] text-slate-500">Role</p>
+                    <p className="text-sm font-semibold">{role} Console</p>
+                  </div>
                 </div>
-                <div className="hud-panel px-4 py-2 flex items-center gap-2">
-                  <Bell size={18} className="text-sky-300" weight="duotone" />
-                  <StatusBadge label="LIVE" tone="active" />
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="px-4 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-slate-700/70 rounded-full hover:border-rose-400/70 text-rose-200"
-                >
-                  Logout
-                </button>
               </div>
-            </header>
+            ) : (
+              <div className="flex justify-center">
+                <div className="h-9 w-9 rounded-sm bg-slate-900 border border-slate-700 flex items-center justify-center">
+                  <RoleIcon size={18} className="text-blue-400" weight="duotone" />
+                </div>
+              </div>
+            )}
 
-            <div className="px-8 py-8 space-y-8">{children}</div>
-          </main>
-        </div>
+            <nav className="space-y-1">
+              {navItems.map((item) => {
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center justify-between gap-3 rounded-sm px-3 py-2.5 text-sm font-medium transition ${
+                      isActive
+                        ? "text-blue-400 bg-blue-950/50 border-l-2 border-blue-400"
+                        : "text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+                    }`}
+                  >
+                    <span className="flex items-center gap-3">
+                      <Icon size={18} weight="duotone" />
+                      {!isCollapsed && item.label}
+                    </span>
+                    {item.tag && (
+                      <span className="text-[10px] uppercase tracking-[0.2em] font-mono text-slate-500">
+                        {item.tag}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            onPointerDown={startResize}
+            onMouseDown={startResizeMouse}
+            onTouchStart={startResizeTouch}
+            className="absolute right-0 top-0 h-full w-3 cursor-col-resize hover:bg-blue-500/50 transition z-20"
+            style={{ touchAction: "none" }}
+            title="Drag to resize"
+          />
+        </aside>
+
+        <main className="flex-1">
+          <header className="sticky top-0 z-40 flex flex-wrap items-center justify-between gap-4 border-b border-slate-700 backdrop-blur-md bg-slate-950/80 px-6 py-4">
+            <div>
+              <h1 className="text-2xl font-bold uppercase tracking-wider">{title}</h1>
+              <p className="text-sm text-slate-400 mt-1">{subtitle}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="bg-slate-800/40 border border-slate-700/60 rounded-sm px-4 py-2 flex items-center gap-2">
+                <Wallet size={18} className="text-blue-400" weight="duotone" />
+                <span className="text-xs font-mono uppercase tracking-[0.2em] text-slate-500">Wallet</span>
+                <span className="text-sm font-semibold">{walletLabel}</span>
+              </div>
+              <div className="bg-slate-800/40 border border-slate-700/60 rounded-sm px-4 py-2 flex items-center gap-2">
+                <Bell size={18} className="text-blue-400" weight="duotone" />
+                <StatusBadge label="LIVE" tone="active" />
+              </div>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-slate-700 rounded-sm hover:border-red-500 text-red-300"
+              >
+                Logout
+              </button>
+            </div>
+          </header>
+
+          <div className="p-6 space-y-6">{children}</div>
+        </main>
       </div>
     </div>
   );

@@ -13,8 +13,8 @@ export default function RegistrationSubmitted() {
       <div className="relative z-10 max-w-3xl mx-auto px-6 py-20">
         <div className="hud-panel p-8 space-y-6">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-              <ShieldCheck size={22} className="text-emerald-200" weight="duotone" />
+            <div className="h-12 w-12 rounded-sm bg-green-950/50 flex items-center justify-center">
+              <ShieldCheck size={22} className="text-green-400" weight="duotone" />
             </div>
             <div>
               <p className="hud-label">Submission Complete</p>
@@ -22,7 +22,7 @@ export default function RegistrationSubmitted() {
             </div>
           </div>
 
-          <div className="hud-card text-slate-200 border border-emerald-400/40">
+          <div className="hud-card text-slate-200 border border-green-600">
             <p className="text-base">Await admin approval to access your dashboard.</p>
             <p className="text-sm text-slate-400 mt-2">
               The admin team verifies your identity and wallet address before activating access.
@@ -48,13 +48,13 @@ export default function RegistrationSubmitted() {
           <div className="flex flex-wrap items-center gap-4">
             <Link
               href="/"
-              className="px-5 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-slate-700/70 rounded-full hover:border-emerald-400/70"
+              className="px-5 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-slate-700/70 rounded-sm hover:border-green-600"
             >
               Back to Login
             </Link>
             <Link
               href="/register"
-              className="px-5 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-sky-500/60 rounded-full text-sky-200 hover:bg-sky-500/10"
+              className="px-5 py-2 text-xs font-mono uppercase tracking-[0.2em] border border-blue-600 rounded-sm text-blue-400 hover:bg-blue-950/50"
             >
               Register Another User
             </Link>
