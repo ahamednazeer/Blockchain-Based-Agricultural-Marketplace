@@ -23,6 +23,7 @@
 [Overview](#overview) · [Architecture](#architecture) · [Roles and permissions](#roles-and-permissions) · [End-to-end flow](#end-to-end-flow-short-version) · [Tech stack](#tech-stack) · [Repository layout](#repository-layout) · [Prerequisites](#prerequisites) · [Core features](#core-features) · [Screenshots](#screenshots) · [Local setup](#local-setup) · [Scripts](#scripts) · [Environment variables](#environment-variables) · [Smart contract summary](#smart-contract-summary) · [Blockchain integration (detailed)](#blockchain-integration-detailed) · [Event logs and decoding](#event-logs-and-decoding-deep-dive) · [Sequence diagrams](#sequence-diagrams) · [UI walkthroughs](#ui-walkthroughs) · [Data model](#data-model) · [API reference](#api-reference) · [Troubleshooting](#troubleshooting) · [Development notes](#development-notes) · [License](#license)
 
 Dedicated setup walkthrough: `README-SETUP.md`
+Dedicated overall design: `docs/OVERALL_SYSTEM_DESIGN.md`
 
 ## Table of Contents
 
@@ -150,6 +151,7 @@ GANACHE_RPC_URL=http://127.0.0.1:7545
 CONTRACT_ADDRESS=0xYOUR_DEPLOYED_ADDRESS
 CONTRACT_ABI_PATH=../contracts/deployments/ganache.json
 CORS_ORIGIN=http://localhost:3000
+DEFAULT_PINCODE=606107
 EXPIRY_CHECK_INTERVAL_MS=3600000
 ETH_INR_RATE=200000
 ETH_RATE_CACHE_MS=60000
@@ -160,6 +162,14 @@ TX_SYNC_LOOKBACK_BLOCKS=50000
 FULFILLMENT_CHECK_INTERVAL_MS=3600000
 FULFILLMENT_AUTO_SHIP_HOURS=6
 FULFILLMENT_AUTO_DELIVER_HOURS=48
+GROQ_API_KEY=your_groq_api_key_optional
+GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
+GROQ_CHAT_MODEL=llama-3.3-70b-versatile
+GROQ_VISION_MODEL=llama-3.2-11b-vision-preview
+GROQ_TIMEOUT_MS=3500
+GROQ_RECOMMENDATION_CACHE_MS=300000
+GROQ_LOG_ERRORS=false
 ```
 
 ### 4) Start backend
@@ -206,7 +216,7 @@ Run the full stack with one command:
 
 ```bash
 cd /Users/syed.ahamed/skillup/Blockchain-Based-Agricultural-Marketplace
-docker compose up --build
+docker compose up
 ```
 
 Default endpoints:
@@ -236,9 +246,11 @@ MetaMask in Docker mode:
 | --- | --- | --- |
 | Contracts | `npm run compile` | Compile Solidity |
 | Contracts | `npm run deploy:ganache` | Deploy to Ganache |
+| Contracts | `npm run transfer:owner -- --owner <ADMIN_WALLET>` | Transfer contract ownership to backend admin wallet |
 | Backend | `npm run dev` | Start API with nodemon |
 | Backend | `npm run start` | Start API |
 | Backend | `npm run send:eth -- --to <WALLET> --eth 10` | Send ETH on local Ganache to a wallet |
+| Backend | `npm run set:pincode -- --pincode 606107` | Backfill farmer/buyer and crop pincode values |
 | Frontend | `npm run dev` | Start Next.js |
 | Frontend | `npm run build` | Build frontend |
 
@@ -271,6 +283,15 @@ MetaMask in Docker mode:
 | `FULFILLMENT_CHECK_INTERVAL_MS` | Fulfillment check interval |
 | `FULFILLMENT_AUTO_SHIP_HOURS` | Auto-ship threshold |
 | `FULFILLMENT_AUTO_DELIVER_HOURS` | Auto-deliver threshold |
+| `DEFAULT_PINCODE` | Default pincode fallback (default `606107`) |
+| `GROQ_API_KEY` | Optional Groq API key for AI recommendations |
+| `GROQ_MODEL` | Groq model name (default `llama-3.3-70b-versatile`) |
+| `GROQ_API_URL` | Optional Groq-compatible chat endpoint override |
+| `GROQ_CHAT_MODEL` | Optional chat model override for AI assistant endpoints |
+| `GROQ_VISION_MODEL` | Optional vision model override for crop image assessment |
+| `GROQ_TIMEOUT_MS` | Groq request timeout in milliseconds |
+| `GROQ_RECOMMENDATION_CACHE_MS` | In-memory cache TTL for AI recommendations |
+| `GROQ_LOG_ERRORS` | Set `true` to log Groq integration errors |
 
 ### Frontend
 
@@ -297,10 +318,12 @@ Key Functions
 - `purchaseCrop(cropId)`
 - `purchaseUnits(cropId, units)`
 - `purchaseBatch(cropIds, units)`
+- `ADMIN_FEE_BPS = 200` (2%)
 
 Events
 - `CropListed`
 - `CropPurchased`
+- `AdminFeePaid`
 - `ContractPaused`
 - `ContractUnpaused`
 - `WalletBlacklisted`
@@ -311,6 +334,7 @@ Security Rules
 - Prevent expired sales (`expiry > block.timestamp`)
 - Admin-only operations (`onlyOwner`)
 - Reentrancy protection (`nonReentrant`)
+- Payout split: 98% to farmer, 2% to contract owner (admin wallet)
 
 ---
 
@@ -368,18 +392,19 @@ This makes `purchaseUnits(cropId, units)` safe for fractional user quantities wh
 - Crop exists, not expired, not sold
 - Units requested are available
 - `msg.value` equals expected total
-4. Contract emits `CropPurchased`.
-5. Backend listener records the transaction in MongoDB:
+4. Contract pays 98% to farmer and 2% to contract owner.
+5. Contract emits `CropPurchased`.
+6. Backend listener records the transaction in MongoDB:
 - `status = CONFIRMED`
 - `txHash`, `blockNumber`, `timestamp`
 - Buyer wallet, farmer wallet, units, ETH value
-6. Backend reduces crop quantity in MongoDB.
-7. If quantity reaches zero, crop status becomes `SOLD`.
+7. Backend reduces crop quantity in MongoDB.
+8. If quantity reaches zero, crop status becomes `SOLD`.
 
 ### Single-Farmer Batch Purchase
 
 `purchaseBatch` requires all crops in the batch to belong to the same farmer. This guarantees:
-- Single ETH transfer to the farmer
+- One farmer payout path for all items in that batch (with admin fee split applied once per total)
 - One atomic transaction for multiple items
 
 The frontend enforces this by blocking checkout if cart items belong to multiple farmers.
@@ -419,6 +444,7 @@ Admin-only functions:
 - `setBlacklist(wallet, status)` blocks malicious wallets
 
 These functions are protected by `onlyOwner`, and the owner is the admin wallet used during deployment.
+The same owner wallet receives the 2% admin fee on each purchase.
 
 ### Price Source of Truth
 
@@ -438,6 +464,8 @@ The contract emits two critical events:
 `CropListed(uint256 cropId, address farmer, uint256 pricePerUnit, uint256 quantity, uint256 expiry, string offchainId)`
 
 `CropPurchased(uint256 cropId, address buyer, uint256 units, uint256 value)`
+
+`AdminFeePaid(address admin, address farmer, uint256 feeAmount, uint256 grossAmount)`
 
 How the backend decodes:
 - The listener receives the event with `event.args` from ethers.
@@ -605,7 +633,7 @@ sequenceDiagram
 
 1. Register as BUYER and wait for admin approval.
 2. Connect MetaMask and sign in.
-3. Browse marketplace and filter by category or unit.
+3. Browse marketplace; buyers see approved crops matching their pincode.
 4. Add listings to cart and choose quantity.
 5. Add or select shipping address and checkout.
 6. Track payment and delivery timeline in My Orders.
@@ -617,7 +645,7 @@ sequenceDiagram
 ### User
 
 Key fields:
-- `name`, `contact`, `location`
+- `name`, `contact`, `location`, `pincode`
 - `role`: ADMIN, FARMER, BUYER
 - `walletAddress`
 - `status`: PENDING, ACTIVE, REJECTED, SUSPENDED
@@ -629,6 +657,7 @@ Key fields:
 - `name`, `category`, `description`, `storageType`
 - `quantity`, `quantityUnit`, `quantityBaseValue`, `unitScale`
 - `pricePerUnitEth`, `pricePerUnitInr`, `pricePerBaseUnitEth`
+- `farmerPincode`
 - `status`: PENDING, APPROVED, REJECTED, SOLD, EXPIRED
 - `contractCropId`, `txHash`
 
@@ -671,7 +700,7 @@ Users
 - `POST /users/admin/:id/suspend`
 
 Crops
-- `GET /crops`
+- `GET /crops` (buyer auth token applies pincode filter)
 - `POST /crops`
 - `GET /crops/mine`
 - `GET /crops/admin/all`
@@ -702,6 +731,8 @@ Other
 | Orders stuck at PENDING | Check contract address, restart backend, verify event sync |
 | Ganache shows 0.00 | Value is small, check wei via JSON-RPC |
 | Insufficient funds | Import a funded Ganache account into MetaMask or top up with `npm run send:eth -- --to <WALLET> --eth 10` |
+| Marketplace shows no crops | Ensure buyer pincode matches farmer listing pincode, then run `npm run set:pincode -- --pincode 606107` |
+| New admin fee logic not reflected | Redeploy contract, update backend `CONTRACT_ADDRESS`, transfer owner to backend admin wallet, restart backend |
 | `missing revert data` on `estimateGas` (`purchaseBatch` / `purchaseCrop`) | Usually stale `contractCropId` after Ganache reset, wrong contract owner, or buyer has 0 ETH. See fix flow below. |
 | ABI not found | Ensure `CONTRACT_ABI_PATH` points to deployments file |
 | Orders empty | Confirm correct wallet is signed in |
@@ -754,3 +785,9 @@ curl -s -X POST http://127.0.0.1:8000/crops/admin/<CROP_ID>/approve \
 - Admin approval publishes listings to chain using the admin private key.
 - Off-chain crop metadata is stored in MongoDB; only price and quantity are on-chain.
 - Crop quantities are stored in base units for precise partial buying.
+- On each purchase, contract splits payout: 98% farmer and 2% admin owner wallet.
+
+
+```bash
+npm run -s send:eth -- --to 0xAbC1234Ef5678901234567890aBcDEF123456789 --amount 0.1 --rpc http://127.0.0.1:7545
+```

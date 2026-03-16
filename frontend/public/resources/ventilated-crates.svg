@@ -1,0 +1,9 @@
+<svg width="800" height="480" viewBox="0 0 800 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="480" rx="32" fill="#0F172A"/>
+  <rect x="48" y="48" width="704" height="384" rx="24" fill="#1E3A8A"/>
+  <rect x="132" y="146" width="536" height="190" rx="20" fill="#93C5FD"/>
+  <path d="M170 184H630M170 222H630M170 260H630M170 298H630" stroke="#1E3A8A" stroke-width="12"/>
+  <path d="M240 154V326M330 154V326M420 154V326M510 154V326M600 154V326" stroke="#1E3A8A" stroke-width="12"/>
+  <text x="64" y="96" fill="#DBEAFE" font-family="Arial, sans-serif" font-size="28" font-weight="700">Ventilated Plastic Crates</text>
+  <text x="64" y="392" fill="#BFDBFE" font-family="Arial, sans-serif" font-size="22">Airflow-friendly storage for produce</text>
+</svg>

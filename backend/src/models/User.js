@@ -5,6 +5,7 @@ const UserSchema = new mongoose.Schema(
     name: { type: String, required: true },
     contact: { type: String, required: true },
     location: { type: String, required: true },
+    pincode: { type: String, required: true, default: "606107", match: /^\d{6}$/ },
     role: { type: String, enum: ["ADMIN", "FARMER", "BUYER"], required: true },
     walletAddress: { type: String, required: true, unique: true, index: true },
     status: {
@@ -13,6 +14,11 @@ const UserSchema = new mongoose.Schema(
       default: "PENDING",
     },
     nonce: { type: String, default: "" },
+    dvuBalance: { type: Number, default: 0, min: 0 },
+    geoLocation: {
+      lat: { type: Number, min: -90, max: 90 },
+      lng: { type: Number, min: -180, max: 180 },
+    },
     shippingAddresses: [
       {
         label: { type: String, default: "Primary" },
@@ -30,5 +36,12 @@ const UserSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+UserSchema.pre("validate", function preValidate(next) {
+  if (!this.pincode) {
+    this.pincode = "606107";
+  }
+  next();
+});
 
 export default mongoose.model("User", UserSchema);

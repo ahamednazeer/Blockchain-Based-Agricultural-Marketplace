@@ -1,6 +1,7 @@
+import "dotenv/config";
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
@@ -11,13 +12,13 @@ import contractRoutes from "./routes/contract.js";
 import statsRoutes from "./routes/stats.js";
 import rateRoutes from "./routes/rates.js";
 import uploadRoutes from "./routes/uploads.js";
+import resourceRoutes from "./routes/resources.js";
+import agriIntelligenceRoutes from "./routes/agriIntelligence.js";
 import path from "path";
 import User from "./models/User.js";
 import { initBlockchainListener } from "./services/blockchain.js";
 import { startExpiryMonitor } from "./services/expiry.js";
 import { startFulfillmentMonitor } from "./services/fulfillment.js";
-
-dotenv.config();
 
 const app = express();
 
@@ -36,6 +37,8 @@ app.use("/ledger", ledgerRoutes);
 app.use("/contract", contractRoutes);
 app.use("/stats", statsRoutes);
 app.use("/rates", rateRoutes);
+app.use("/resources", resourceRoutes);
+app.use("/agri-intelligence", agriIntelligenceRoutes);
 app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 app.use("/uploads", uploadRoutes);
 
@@ -46,6 +49,7 @@ app.use((err, req, res, next) => {
 
 async function ensureAdmin() {
   const adminWallet = process.env.ADMIN_WALLET;
+  const defaultPincode = process.env.DEFAULT_PINCODE || "606107";
   if (!adminWallet) {
     console.warn("ADMIN_WALLET not set. Admin user not auto-created.");
     return;
@@ -58,17 +62,23 @@ async function ensureAdmin() {
       name: "System Admin",
       contact: "admin",
       location: "HQ",
+      pincode: defaultPincode,
       role: "ADMIN",
       walletAddress: normalized,
       status: "ACTIVE",
+      dvuBalance: 0,
     });
     console.log("Admin user created.");
     return;
   }
 
-  if (existing.role !== "ADMIN" || existing.status !== "ACTIVE") {
+  if (existing.role !== "ADMIN" || existing.status !== "ACTIVE" || !existing.pincode) {
     existing.role = "ADMIN";
     existing.status = "ACTIVE";
+    existing.pincode = existing.pincode || defaultPincode;
+    if (!Number.isFinite(Number(existing.dvuBalance))) {
+      existing.dvuBalance = 0;
+    }
     await existing.save();
     console.log("Admin user updated to ACTIVE.");
   }

@@ -9,6 +9,9 @@ export default function FarmerOrders() {
   const [rows, setRows] = useState<any[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<{ type: "ok" | "err"; text: string } | null>(
+    null
+  );
 
   const fetchRows = () => {
     api
@@ -102,6 +105,14 @@ export default function FarmerOrders() {
             ? `${row.shippingAddress.recipientName || ""} · ${row.shippingAddress.city || ""} ${row.shippingAddress.state || ""} ${row.shippingAddress.postalCode || ""}`.trim()
             : "-",
           shippingAddress: row.shippingAddress || null,
+          returnStatus: row.returnStatus || "NONE",
+          ratingScore: row.rating?.score || null,
+          ratingFeedback: row.rating?.feedback || "",
+          courierName: row.courier?.partnerName || "",
+          courierTrackingId: row.courier?.trackingId || "",
+          pickupStatus: row.pickupStatus || "PENDING",
+          transitStatus: row.transitStatus || "PENDING",
+          slaBreached: Boolean(row.slaBreached),
         };
       });
     }, [rows]);
@@ -116,6 +127,51 @@ export default function FarmerOrders() {
     }
   };
 
+  const assignCourier = async (row: any) => {
+    const partnerName = window.prompt("Courier partner name:", row.courierName || "Local Courier");
+    if (!partnerName) return;
+    const trackingId = window.prompt("Tracking ID (optional):", row.courierTrackingId || "") || "";
+    setBusyId(row._id);
+    try {
+      await api.assignCourier(row._id, { partnerName, trackingId });
+      setActionMessage({ type: "ok", text: "Courier assigned." });
+      fetchRows();
+    } catch (error: any) {
+      setActionMessage({ type: "err", text: error.message || "Failed to assign courier." });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const updateCourier = async (
+    row: any,
+    payload: { pickupStatus?: "PENDING" | "PICKED_UP"; transitStatus?: "PENDING" | "IN_TRANSIT" | "DELIVERED" }
+  ) => {
+    setBusyId(row._id);
+    try {
+      await api.updateCourierStatus(row._id, payload);
+      setActionMessage({ type: "ok", text: "Delivery status updated." });
+      fetchRows();
+    } catch (error: any) {
+      setActionMessage({ type: "err", text: error.message || "Failed to update delivery status." });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const reviewReturn = async (row: any, decision: "APPROVED" | "REJECTED" | "COMPLETED") => {
+    setBusyId(row._id);
+    try {
+      await api.reviewReturn(row._id, decision);
+      setActionMessage({ type: "ok", text: `Return ${decision.toLowerCase()}.` });
+      fetchRows();
+    } catch (error: any) {
+      setActionMessage({ type: "err", text: error.message || "Failed to update return decision." });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="hud-card">
@@ -123,6 +179,17 @@ export default function FarmerOrders() {
         <h2 className="text-xl font-semibold mt-2">Recent Purchases</h2>
         <p className="text-sm text-slate-400 mt-2">Track ETH transfers and buyer confirmations.</p>
       </div>
+      {actionMessage && (
+        <div
+          className={`hud-card text-sm ${
+            actionMessage.type === "ok"
+              ? "border border-green-600 text-green-400"
+              : "border border-rose-500/40 text-rose-200"
+          }`}
+        >
+          {actionMessage.text}
+        </div>
+      )}
 
       {rows.length === 0 ? (
         <div className="hud-card text-sm text-slate-400">No purchases yet.</div>
@@ -271,6 +338,65 @@ export default function FarmerOrders() {
                               <p className="text-xs text-slate-500">
                                 Status updates are based on on-chain confirmation and fulfillment.
                               </p>
+                              <div className="pt-2 space-y-2 text-xs text-slate-400">
+                                <p>Courier: {row.courierName || "Not assigned"}</p>
+                                {row.courierTrackingId ? <p>Tracking: {row.courierTrackingId}</p> : null}
+                                <p>Pickup: {row.pickupStatus} · Transit: {row.transitStatus}</p>
+                                <p>Return: {row.returnStatus}</p>
+                                <p>
+                                  Buyer Rating: {row.ratingScore ? `${row.ratingScore}/5` : "Not rated"}
+                                  {row.ratingFeedback ? ` — ${row.ratingFeedback}` : ""}
+                                </p>
+                                <p>SLA: {row.slaBreached ? "Breached" : "On track"}</p>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2 pt-2">
+                                <button
+                                  disabled={busyId === row._id}
+                                  onClick={() => assignCourier(row)}
+                                  className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-blue-700 rounded-sm text-blue-300 hover:bg-blue-950/40 disabled:opacity-50"
+                                >
+                                  Assign Courier
+                                </button>
+                                <button
+                                  disabled={busyId === row._id}
+                                  onClick={() => updateCourier(row, { pickupStatus: "PICKED_UP" })}
+                                  className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-slate-600 rounded-sm text-slate-300 hover:bg-slate-900/60 disabled:opacity-50"
+                                >
+                                  Picked Up
+                                </button>
+                                <button
+                                  disabled={busyId === row._id}
+                                  onClick={() => updateCourier(row, { transitStatus: "IN_TRANSIT" })}
+                                  className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-slate-600 rounded-sm text-slate-300 hover:bg-slate-900/60 disabled:opacity-50"
+                                >
+                                  In Transit
+                                </button>
+                                <button
+                                  disabled={busyId === row._id}
+                                  onClick={() => updateCourier(row, { transitStatus: "DELIVERED" })}
+                                  className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-green-600 rounded-sm text-green-400 hover:bg-green-950/40 disabled:opacity-50"
+                                >
+                                  Delivered
+                                </button>
+                                {row.returnStatus === "REQUESTED" ? (
+                                  <>
+                                    <button
+                                      disabled={busyId === row._id}
+                                      onClick={() => reviewReturn(row, "APPROVED")}
+                                      className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-amber-600 rounded-sm text-amber-300 hover:bg-amber-950/40 disabled:opacity-50"
+                                    >
+                                      Approve Return
+                                    </button>
+                                    <button
+                                      disabled={busyId === row._id}
+                                      onClick={() => reviewReturn(row, "REJECTED")}
+                                      className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-rose-600 rounded-sm text-rose-300 hover:bg-rose-950/40 disabled:opacity-50"
+                                    >
+                                      Reject Return
+                                    </button>
+                                  </>
+                                ) : null}
+                              </div>
                             </div>
                           </div>
                         </td>

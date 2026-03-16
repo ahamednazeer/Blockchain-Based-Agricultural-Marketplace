@@ -1,17 +1,21 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ShoppingCart } from "@phosphor-icons/react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { api } from "@/lib/api";
 import { getContract } from "@/lib/contract";
 import { ethers } from "ethers";
 import { resolveAssetUrl } from "@/lib/format";
+import { getReadableWalletError } from "@/lib/walletErrors";
 import { formatQuantityValue, getUnitMeta, parseToBaseUnits, stepForScale } from "@/lib/units";
 
 export default function MarketplacePage() {
   const [listings, setListings] = useState<any[]>([]);
+  const [wasteInsights, setWasteInsights] = useState<any>(null);
+  const [farmerTrustByWallet, setFarmerTrustByWallet] = useState<Record<string, any>>({});
   const [action, setAction] = useState<{ id: string | null; status: string; error: string }>({
     id: null,
     status: "",
@@ -27,6 +31,11 @@ export default function MarketplacePage() {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [unitFilter, setUnitFilter] = useState("All");
   const [sortBy, setSortBy] = useState("recent");
+  const [locationPincode, setLocationPincode] = useState("");
+  const [availabilityFilter, setAvailabilityFilter] = useState<"ACTIVE" | "ALL">("ACTIVE");
+  const [radiusKm, setRadiusKm] = useState("0");
+  const [locationCoords, setLocationCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [nearbyFarmers, setNearbyFarmers] = useState<any[]>([]);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [addressLoading, setAddressLoading] = useState(false);
   const [addressError, setAddressError] = useState("");
@@ -51,16 +60,25 @@ export default function MarketplacePage() {
     null
   );
 
-  const getCropId = (crop: any) => crop?._id || crop?.id;
-  const getUnitScale = (crop: any) => {
+  const getTrustTone = (score?: number) => {
+    if (typeof score !== "number" || !Number.isFinite(score)) {
+      return "info";
+    }
+    if (score >= 80) return "active";
+    if (score >= 60) return "pending";
+    return "critical";
+  };
+
+  const getCropId = useCallback((crop: any) => crop?._id || crop?.id, []);
+  const getUnitScale = useCallback((crop: any) => {
     const scale = Number(crop?.unitScale);
     if (Number.isFinite(scale) && scale > 0) {
       return Math.floor(scale);
     }
     return getUnitMeta(crop?.quantityUnit || "").scale;
-  };
+  }, []);
 
-  const getAvailableBaseUnits = (crop: any) => {
+  const getAvailableBaseUnits = useCallback((crop: any) => {
     const rawBase = crop?.quantityBaseValue;
     if (rawBase !== null && rawBase !== undefined && rawBase !== "") {
       const baseValue = Number(rawBase);
@@ -83,9 +101,9 @@ export default function MarketplacePage() {
       return parsed.base as number;
     }
     return 0;
-  };
+  }, [getUnitScale]);
 
-  const getPerBaseWei = (crop: any, availableBase: number, scale: number) => {
+  const getPerBaseWei = useCallback((crop: any, availableBase: number, scale: number) => {
     if (crop?.pricePerBaseUnitEth) {
       try {
         return ethers.parseEther(String(crop.pricePerBaseUnitEth));
@@ -110,9 +128,9 @@ export default function MarketplacePage() {
       }
     }
     return 0n;
-  };
+  }, []);
 
-  const buildCartItem = (crop: any) => {
+  const buildCartItem = useCallback((crop: any) => {
     const unitScale = getUnitScale(crop);
     const unitMeta = getUnitMeta(crop?.quantityUnit || "");
     const baseUnit = crop?.quantityBaseUnit || unitMeta.baseUnit;
@@ -156,7 +174,7 @@ export default function MarketplacePage() {
         (Array.isArray(crop.imageUrls) && crop.imageUrls[0]) || crop.imageUrl || "",
       expiryDate: crop.expiryDate,
     };
-  };
+  }, [getAvailableBaseUnits, getCropId, getPerBaseWei, getUnitScale]);
 
   const formatEthFromWei = (value: bigint, decimals = 6) => {
     const eth = Number(ethers.formatEther(value));
@@ -166,7 +184,7 @@ export default function MarketplacePage() {
     return eth.toFixed(decimals);
   };
 
-  const getListingMetrics = (crop: any) => {
+  const getListingMetrics = useCallback((crop: any) => {
     const unitScale = getUnitScale(crop);
     const availableBase = getAvailableBaseUnits(crop);
     const availableDisplay = unitScale > 0 ? availableBase / unitScale : availableBase;
@@ -180,7 +198,7 @@ export default function MarketplacePage() {
       perUnitInr = Number(crop.pricePerBaseUnitInr) * unitScale;
     }
     return { unitScale, availableBase, availableDisplay, perBaseWei, perUnitEth, perUnitInr };
-  };
+  }, [getAvailableBaseUnits, getPerBaseWei, getUnitScale]);
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -239,7 +257,7 @@ export default function MarketplacePage() {
     });
 
     return data;
-  }, [listings, searchTerm, categoryFilter, unitFilter, sortBy]);
+  }, [listings, searchTerm, categoryFilter, unitFilter, sortBy, getListingMetrics]);
 
   const cartIds = useMemo(() => new Set(cartItems.map((item) => item.id)), [cartItems]);
   const cartSummary = useMemo(() => {
@@ -277,9 +295,17 @@ export default function MarketplacePage() {
   }, [cartItems]);
 
   useEffect(() => {
+    const radiusValue = Number(radiusKm);
+    const radiusEnabled = Number.isFinite(radiusValue) && radiusValue > 0;
     const fetchListings = () => {
       api
-        .getCrops()
+        .getCrops({
+          pincode: locationPincode || undefined,
+          availability: availabilityFilter,
+          lat: radiusEnabled ? locationCoords?.lat : undefined,
+          lng: radiusEnabled ? locationCoords?.lng : undefined,
+          radiusKm: radiusEnabled ? radiusValue : undefined,
+        })
         .then((data) => {
           if (Array.isArray(data)) {
             setListings(data);
@@ -295,7 +321,82 @@ export default function MarketplacePage() {
       fetchListings();
     }, 12000);
     return () => clearInterval(interval);
+  }, [availabilityFilter, locationCoords?.lat, locationCoords?.lng, locationPincode, radiusKm]);
+
+  useEffect(() => {
+    const radiusValue = Number(radiusKm);
+    const radiusEnabled = Number.isFinite(radiusValue) && radiusValue > 0;
+    api
+      .getNearbyFarmers({
+        pincode: locationPincode || undefined,
+        lat: radiusEnabled ? locationCoords?.lat : undefined,
+        lng: radiusEnabled ? locationCoords?.lng : undefined,
+        radiusKm: radiusEnabled ? radiusValue : undefined,
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setNearbyFarmers(data);
+        }
+      })
+      .catch(() => {
+        setNearbyFarmers([]);
+      });
+  }, [locationPincode, locationCoords?.lat, locationCoords?.lng, radiusKm]);
+
+  useEffect(() => {
+    const fetchWasteInsights = () => {
+      api
+        .getMarketplaceWasteInsights()
+        .then((data) => setWasteInsights(data))
+        .catch(() => {
+          // keep optional panel empty on failures
+        });
+    };
+
+    fetchWasteInsights();
+    const interval = setInterval(fetchWasteInsights, 60000);
+    return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const wallets = Array.from(
+      new Set(
+        listings
+          .map((crop) => String(crop?.farmerWallet || "").toLowerCase())
+          .filter(Boolean)
+      )
+    );
+
+    if (wallets.length === 0) {
+      setFarmerTrustByWallet({});
+      return;
+    }
+
+    let cancelled = false;
+    Promise.all(
+      wallets.map(async (wallet) => {
+        try {
+          const trust = await api.getFarmerTrustByWallet(wallet);
+          return [wallet, trust] as const;
+        } catch {
+          return [wallet, null] as const;
+        }
+      })
+    ).then((entries) => {
+      if (cancelled) return;
+      const next: Record<string, any> = {};
+      entries.forEach(([wallet, trust]) => {
+        if (trust) {
+          next[wallet] = trust;
+        }
+      });
+      setFarmerTrustByWallet(next);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [listings]);
 
   useEffect(() => {
     setAddressLoading(true);
@@ -372,7 +473,7 @@ export default function MarketplacePage() {
         };
       });
     });
-  }, [listings]);
+  }, [listings, buildCartItem, getCropId]);
 
   const addToCart = (crop: any) => {
     const id = getCropId(crop);
@@ -660,7 +761,11 @@ export default function MarketplacePage() {
         }
       });
     } catch (error: any) {
-      setCartAction({ busy: false, status: "", error: error.message || "Checkout failed" });
+      setCartAction({
+        busy: false,
+        status: "",
+        error: getReadableWalletError(error, "Checkout failed"),
+      });
     }
   };
 
@@ -719,7 +824,7 @@ export default function MarketplacePage() {
       setAction({
         id: null,
         status: "",
-        error: error.message || "Purchase failed",
+        error: getReadableWalletError(error, "Purchase failed"),
       });
     }
   };
@@ -739,6 +844,45 @@ export default function MarketplacePage() {
     }
     openAddressFlow({ type: "cart" });
   };
+
+  const requestCurrentLocation = () => {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      setAction({ id: null, status: "", error: "Geolocation is not available in this browser." });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocationCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setAction({ id: null, status: "GPS location captured for nearby farmer matching.", error: "" });
+      },
+      () => {
+        setAction({ id: null, status: "", error: "Unable to read your GPS location." });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const riskSummary = wasteInsights?.summary || {};
+  const wasteRiskLabel =
+    Number(riskSummary.highRiskCategories || 0) > 0
+      ? "HIGH"
+      : Number(riskSummary.mediumRiskCategories || 0) > 0
+        ? "MEDIUM"
+        : "LOW";
+  const wasteRiskTone =
+    wasteRiskLabel === "HIGH"
+      ? "critical"
+      : wasteRiskLabel === "MEDIUM"
+        ? "pending"
+        : "active";
+  const topRiskCategories = Array.isArray(wasteInsights?.categories)
+    ? wasteInsights.categories.slice(0, 3)
+    : [];
+  const topRecommendation =
+    Array.isArray(wasteInsights?.recommendations) && wasteInsights.recommendations.length > 0
+      ? wasteInsights.recommendations[0]
+      : "";
+  const recommendationEngine = String(wasteInsights?.recommendationEngine || "RULE_BASED");
 
   return (
     <>
@@ -798,12 +942,123 @@ export default function MarketplacePage() {
                   setCategoryFilter("All");
                   setUnitFilter("All");
                   setSortBy("recent");
+                  setLocationPincode("");
+                  setAvailabilityFilter("ACTIVE");
+                  setRadiusKm("0");
+                  setLocationCoords(null);
                 }}
                 className="border border-slate-700/70 text-slate-300 rounded-sm py-3 text-xs font-mono uppercase tracking-[0.2em] hover:border-slate-400"
               >
                 Clear
               </button>
             </div>
+          </div>
+
+          <div className="hud-panel p-4 grid grid-cols-1 md:grid-cols-[1fr_180px_160px_auto] gap-3">
+            <div>
+              <label className="hud-label">Location (Pincode)</label>
+              <input
+                className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
+                placeholder="Filter by farmer pincode"
+                value={locationPincode}
+                maxLength={6}
+                onChange={(event) =>
+                  setLocationPincode(event.target.value.replace(/\D/g, "").slice(0, 6))
+                }
+              />
+            </div>
+            <div>
+              <label className="hud-label">Availability</label>
+              <select
+                className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
+                value={availabilityFilter}
+                onChange={(event) => setAvailabilityFilter(event.target.value as "ACTIVE" | "ALL")}
+              >
+                <option value="ACTIVE">Active only</option>
+                <option value="ALL">All listings</option>
+              </select>
+            </div>
+            <div>
+              <label className="hud-label">Radius (km)</label>
+              <input
+                type="number"
+                min="0"
+                className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
+                value={radiusKm}
+                onChange={(event) => setRadiusKm(event.target.value)}
+              />
+            </div>
+            <div className="flex flex-col justify-end gap-2">
+              <button
+                onClick={requestCurrentLocation}
+                className="border border-blue-700 text-blue-300 rounded-sm py-3 text-xs font-mono uppercase tracking-[0.2em] hover:border-blue-500"
+              >
+                Use GPS
+              </button>
+            </div>
+          </div>
+
+          <div className="hud-card border border-slate-700/70">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="hud-label">Waste Outlook</p>
+                <p className="text-sm text-slate-300 mt-1">
+                  Forecast-based supply risk across active marketplace categories.
+                </p>
+                <p className="text-xs text-slate-500 mt-1">Engine: {recommendationEngine}</p>
+              </div>
+              <StatusBadge label={wasteRiskLabel} tone={wasteRiskTone} />
+            </div>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+              <div className="border border-slate-700/60 rounded-sm px-3 py-2">
+                <p className="text-slate-400 text-xs uppercase tracking-[0.2em] font-mono">
+                  Active Listings
+                </p>
+                <p className="text-lg font-semibold mt-1">{riskSummary.activeListings ?? "—"}</p>
+              </div>
+              <div className="border border-slate-700/60 rounded-sm px-3 py-2">
+                <p className="text-slate-400 text-xs uppercase tracking-[0.2em] font-mono">
+                  Near Expiry
+                </p>
+                <p className="text-lg font-semibold mt-1">{riskSummary.nearExpiry ?? "—"}</p>
+              </div>
+              <div className="border border-slate-700/60 rounded-sm px-3 py-2">
+                <p className="text-slate-400 text-xs uppercase tracking-[0.2em] font-mono">
+                  High-Risk Categories
+                </p>
+                <p className="text-lg font-semibold mt-1">{riskSummary.highRiskCategories ?? "—"}</p>
+              </div>
+            </div>
+            {topRiskCategories.length > 0 && (
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                {topRiskCategories.map((item: any) => (
+                  <span
+                    key={`${item.category}-${item.risk}`}
+                    className="inline-flex items-center px-2 py-1 rounded-sm border border-slate-700/60 text-xs"
+                  >
+                    {item.category}: {item.risk}
+                  </span>
+                ))}
+              </div>
+            )}
+            {topRecommendation && (
+              <p className="mt-3 text-xs text-slate-400">{topRecommendation}</p>
+            )}
+            {nearbyFarmers.length > 0 && (
+              <div className="mt-4">
+                <p className="hud-label">Nearest Farmers</p>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                  {nearbyFarmers.slice(0, 4).map((farmer: any) => (
+                    <span
+                      key={farmer.id}
+                      className="inline-flex items-center px-2 py-1 rounded-sm border border-slate-700/60"
+                    >
+                      {farmer.name} {farmer.distanceKm !== null ? `(${farmer.distanceKm} km)` : ""}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </header>
 
@@ -846,6 +1101,10 @@ export default function MarketplacePage() {
                     setCategoryFilter("All");
                     setUnitFilter("All");
                     setSortBy("recent");
+                    setLocationPincode("");
+                    setAvailabilityFilter("ACTIVE");
+                    setRadiusKm("0");
+                    setLocationCoords(null);
                   }}
                   className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400 hover:text-slate-200"
                 >
@@ -935,15 +1194,19 @@ export default function MarketplacePage() {
                         : [];
                   const imageUrl = images[0] ? resolveAssetUrl(images[0]) : "";
                   const certUrl = crop.certificateUrl ? resolveAssetUrl(crop.certificateUrl) : "";
+                  const trust = farmerTrustByWallet[String(crop.farmerWallet || "").toLowerCase()];
 
                   return (
                     <article key={crop.id || crop._id} className="hud-panel p-5 space-y-4 min-w-0 overflow-hidden">
                       <div className="flex gap-4 min-w-0">
                         <div className="h-24 w-28 flex-shrink-0 rounded-sm border border-slate-700/60 overflow-hidden bg-slate-900/60">
                           {imageUrl ? (
-                            <img
+                            <Image
                               src={imageUrl}
                               alt={`${crop.name || "Crop"} image`}
+                              width={112}
+                              height={96}
+                              unoptimized
                               className="h-full w-full object-cover"
                             />
                           ) : (
@@ -958,8 +1221,32 @@ export default function MarketplacePage() {
                               <p className="hud-label break-all">{crop.category} · {crop.id || crop._id}</p>
                               <h3 className="text-lg font-semibold mt-1">{crop.name}</h3>
                               <p className="text-xs text-slate-400 mt-1 break-all">
+                                Pincode {crop.farmerPincode || "-"}
+                                {typeof crop.distanceKm === "number" ? ` · ${crop.distanceKm} km` : ""}
+                              </p>
+                              <p className="text-xs text-slate-400 mt-1 break-all">
                                 Farmer: {crop.farmer || crop.farmerWallet}
                               </p>
+                              <div className="mt-3 flex flex-wrap items-center gap-2">
+                                <StatusBadge
+                                  label={`Grade ${crop.qualityGrade || "B"}`}
+                                  tone={crop.qualityGrade === "A" ? "active" : "pending"}
+                                />
+                                <StatusBadge
+                                  label={
+                                    trust?.reliabilityScore !== undefined
+                                      ? `Trust ${Math.round(Number(trust.reliabilityScore || 0))}%`
+                                      : "Trust Pending"
+                                  }
+                                  tone={getTrustTone(Number(trust?.reliabilityScore))}
+                                />
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider border border-slate-700 text-slate-300">
+                                  Rating {trust?.totalRatings ? `${Number(trust.avgRating || 0).toFixed(1)}/5` : "New"}
+                                </span>
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider border border-slate-700 text-slate-300">
+                                  Returns {trust?.returnRate !== undefined ? `${Math.round(Number(trust.returnRate) * 100)}%` : "—"}
+                                </span>
+                              </div>
                             </div>
                             <div className="ml-auto flex-shrink-0">
                               <StatusBadge

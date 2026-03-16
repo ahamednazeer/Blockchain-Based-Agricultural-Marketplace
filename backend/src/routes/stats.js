@@ -4,11 +4,37 @@ import { auth, requireRole } from "../middleware/auth.js";
 import User from "../models/User.js";
 import Crop from "../models/Crop.js";
 import Transaction from "../models/Transaction.js";
+import {
+  buildFarmerWasteInsights,
+  buildMarketplaceWasteInsights,
+  buildWasteDatasets,
+} from "../services/analytics.js";
 
 const router = express.Router();
 
 function sumEth(rows) {
   return rows.reduce((total, row) => total + Number(row.valueEth || 0), 0);
+}
+
+function buildReliability(transactions) {
+  const confirmed = transactions.filter((tx) => tx.status === "CONFIRMED");
+  const rated = confirmed.filter((tx) => tx.rating?.score);
+  const avgRating = rated.length
+    ? rated.reduce((sum, tx) => sum + Number(tx.rating.score || 0), 0) / rated.length
+    : 0;
+  const returnRequested = confirmed.filter((tx) => tx.returnStatus && tx.returnStatus !== "NONE").length;
+  const returnRate = confirmed.length ? returnRequested / confirmed.length : 0;
+  const reliabilityScore = confirmed.length
+    ? ((avgRating / 5) * 70 + (1 - returnRate) * 30) * 100
+    : 0;
+
+  return {
+    avgRating: Number(avgRating.toFixed(2)),
+    totalRatings: rated.length,
+    returnRate: Number(returnRate.toFixed(3)),
+    returnRequested,
+    reliabilityScore: Number(reliabilityScore.toFixed(2)),
+  };
 }
 
 router.get(
@@ -27,6 +53,14 @@ router.get(
       activeListings: crops,
       totalEth: sumEth(transactions),
     });
+  })
+);
+
+router.get(
+  "/marketplace/waste",
+  asyncHandler(async (req, res) => {
+    const insights = await buildMarketplaceWasteInsights();
+    res.json(insights);
   })
 );
 
@@ -92,6 +126,29 @@ router.get(
       })
     );
 
+    const qualityGrades = crops.reduce(
+      (acc, crop) => {
+        const grade = String(crop.qualityGrade || "B").toUpperCase() === "A" ? "A" : "B";
+        acc[grade] += 1;
+        return acc;
+      },
+      { A: 0, B: 0 }
+    );
+
+    const confirmed = transactions.filter((tx) => tx.status === "CONFIRMED");
+    const rated = confirmed.filter((tx) => tx.rating?.score);
+    const avgBuyerRating = rated.length
+      ? rated.reduce((total, tx) => total + Number(tx.rating.score || 0), 0) / rated.length
+      : 0;
+    const returnRequests = confirmed.filter(
+      (tx) => tx.returnStatus && tx.returnStatus !== "NONE"
+    ).length;
+    const approvedReturns = confirmed.filter((tx) =>
+      ["APPROVED", "COMPLETED"].includes(String(tx.returnStatus || "").toUpperCase())
+    ).length;
+    const returnRate = confirmed.length ? returnRequests / confirmed.length : 0;
+    const gradeAMix = crops.length ? qualityGrades.A / crops.length : 0;
+
     res.json({
       users: {
         total: users.length,
@@ -118,6 +175,16 @@ router.get(
         revenue30d,
         categories,
       },
+      trust: {
+        avgBuyerRating: Number(avgBuyerRating.toFixed(2)),
+        totalRatings: rated.length,
+        returnRequests,
+        approvedReturns,
+        returnRate: Number(returnRate.toFixed(3)),
+        gradeAListings: qualityGrades.A,
+        gradeBListings: qualityGrades.B,
+        gradeAMix: Number(gradeAMix.toFixed(3)),
+      },
     });
   })
 );
@@ -128,10 +195,12 @@ router.get(
   requireRole("FARMER"),
   asyncHandler(async (req, res) => {
     const now = new Date();
-    const [crops, transactions] = await Promise.all([
+    const [crops, transactions, wasteInsights] = await Promise.all([
       Crop.find({ farmerId: req.user._id }),
       Transaction.find({ farmerWallet: req.user.walletAddress }),
+      buildFarmerWasteInsights(req.user._id),
     ]);
+    const reliability = buildReliability(transactions);
 
     const counts = crops.reduce(
       (acc, crop) => {
@@ -155,7 +224,65 @@ router.get(
         active: counts.active,
       },
       revenueEth: sumEth(transactions.filter((t) => t.status === "CONFIRMED")),
+      dvuBalance: Number(req.user.dvuBalance || 0),
+      wasteRisk: wasteInsights?.wasteRisk || "LOW",
+      nearExpiryCount: wasteInsights?.freshness?.NEAR_EXPIRY || 0,
+      expiredCount: wasteInsights?.freshness?.EXPIRED || 0,
+      recommendations: wasteInsights?.recommendations || [],
+      trust: reliability,
     });
+  })
+);
+
+router.get(
+  "/farmer/trust",
+  auth,
+  requireRole("FARMER"),
+  asyncHandler(async (req, res) => {
+    const tx = await Transaction.find({ farmerWallet: req.user.walletAddress }).sort({
+      createdAt: -1,
+    });
+    const reliability = buildReliability(tx);
+    const latestRatings = tx
+      .filter((row) => row.rating?.score)
+      .slice(0, 20)
+      .map((row) => ({
+        txId: row._id,
+        score: row.rating.score,
+        feedback: row.rating.feedback || "",
+        ratedAt: row.rating.ratedAt || row.updatedAt,
+      }));
+
+    res.json({
+      ...reliability,
+      latestRatings,
+    });
+  })
+);
+
+router.get(
+  "/trust/farmer/:wallet",
+  asyncHandler(async (req, res) => {
+    const wallet = String(req.params.wallet || "").toLowerCase();
+    if (!wallet) {
+      return res.status(400).json({ error: "Wallet is required" });
+    }
+    const tx = await Transaction.find({ farmerWallet: new RegExp(`^${wallet}$`, "i") });
+    const reliability = buildReliability(tx);
+    res.json(reliability);
+  })
+);
+
+router.get(
+  "/farmer/waste",
+  auth,
+  requireRole("FARMER"),
+  asyncHandler(async (req, res) => {
+    const insights = await buildFarmerWasteInsights(req.user._id);
+    if (!insights) {
+      return res.status(404).json({ error: "Farmer insights unavailable" });
+    }
+    res.json(insights);
   })
 );
 
@@ -177,7 +304,18 @@ router.get(
       },
       spentEth: sumEth(transactions.filter((t) => t.status === "CONFIRMED")),
       activeListings,
+      dvuBalance: Number(req.user.dvuBalance || 0),
     });
+  })
+);
+
+router.get(
+  "/waste/datasets",
+  auth,
+  requireRole("ADMIN"),
+  asyncHandler(async (req, res) => {
+    const datasets = await buildWasteDatasets(req.query.limit);
+    res.json(datasets);
   })
 );
 

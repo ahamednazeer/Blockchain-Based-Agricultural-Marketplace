@@ -9,6 +9,21 @@ import { api } from "@/lib/api";
 export default function AdminOverview() {
   const [stats, setStats] = useState<any>(null);
   const [pending, setPending] = useState<any[]>([]);
+  const [busyUserId, setBusyUserId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState("");
+
+  const fetchPendingUsers = () => {
+    api
+      .getAdminUsers()
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setPending(data.filter((user) => user.status === "PENDING").slice(0, 3));
+        }
+      })
+      .catch(() => {
+        // leave empty
+      });
+  };
 
   useEffect(() => {
     api
@@ -20,17 +35,33 @@ export default function AdminOverview() {
         // fallback to static
       });
 
-    api
-      .getAdminUsers()
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setPending(data.filter((user) => user.status === "PENDING").slice(0, 3));
-        }
-      })
-      .catch(() => {
-        // leave empty
-      });
+    fetchPendingUsers();
   }, []);
+
+  const handleUserDecision = async (id: string, action: "approve" | "reject") => {
+    setBusyUserId(id);
+    setActionError("");
+    try {
+      if (action === "approve") {
+        await api.approveUser(id);
+      } else {
+        await api.rejectUser(id);
+      }
+      fetchPendingUsers();
+      api
+        .getAdminStats()
+        .then((data) => {
+          setStats(data);
+        })
+        .catch(() => {
+          // ignore
+        });
+    } catch (error: any) {
+      setActionError(error?.message || `Failed to ${action} user`);
+    } finally {
+      setBusyUserId(null);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -71,6 +102,11 @@ export default function AdminOverview() {
             <StatusBadge label="Priority" tone="pending" />
           </div>
           <div className="space-y-3">
+            {actionError && (
+              <div className="rounded-sm border px-3 py-2 text-xs border-rose-500/40 text-rose-200 bg-rose-500/10">
+                {actionError}
+              </div>
+            )}
             {pending.length === 0 && (
               <div className="text-sm text-slate-400">No pending users.</div>
             )}
@@ -81,8 +117,20 @@ export default function AdminOverview() {
                   <p className="text-xs text-slate-400 font-mono uppercase tracking-[0.2em]">{user.role} · {user.location || "Unknown"}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-green-600 rounded-sm text-green-400 hover:bg-green-950/50">Approve</button>
-                  <button className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-red-600 rounded-sm text-red-400 hover:bg-red-950/50">Reject</button>
+                  <button
+                    onClick={() => handleUserDecision(user.id || user._id, "approve")}
+                    disabled={busyUserId === (user.id || user._id)}
+                    className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-green-600 rounded-sm text-green-400 hover:bg-green-950/50 disabled:opacity-50"
+                  >
+                    {busyUserId === (user.id || user._id) ? "..." : "Approve"}
+                  </button>
+                  <button
+                    onClick={() => handleUserDecision(user.id || user._id, "reject")}
+                    disabled={busyUserId === (user.id || user._id)}
+                    className="px-3 py-1 text-xs font-mono uppercase tracking-[0.2em] border border-red-600 rounded-sm text-red-400 hover:bg-red-950/50 disabled:opacity-50"
+                  >
+                    {busyUserId === (user.id || user._id) ? "..." : "Reject"}
+                  </button>
                 </div>
               </div>
             ))}

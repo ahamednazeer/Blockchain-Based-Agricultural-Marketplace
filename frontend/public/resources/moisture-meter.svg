@@ -1,0 +1,10 @@
+<svg width="800" height="480" viewBox="0 0 800 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="480" rx="32" fill="#3F1D0B"/>
+  <rect x="50" y="54" width="700" height="372" rx="26" fill="#9A3412"/>
+  <rect x="292" y="104" width="216" height="272" rx="24" fill="#FFEDD5"/>
+  <rect x="328" y="146" width="144" height="82" rx="12" fill="#FDBA74"/>
+  <circle cx="400" cy="292" r="36" fill="#EA580C"/>
+  <path d="M400 140V74" stroke="#FFEDD5" stroke-width="14" stroke-linecap="round"/>
+  <text x="64" y="100" fill="#FFEDD5" font-family="Arial, sans-serif" font-size="28" font-weight="700">Digital Moisture Meter</text>
+  <text x="64" y="394" fill="#FED7AA" font-family="Arial, sans-serif" font-size="22">Helps validate dry grain storage readiness</text>
+</svg>

@@ -16,7 +16,14 @@ export function startFulfillmentMonitor() {
         fulfillmentStatus: "PENDING",
         createdAt: { $lte: shipBefore },
       },
-      { fulfillmentStatus: "SHIPPED", updatedAt: now }
+      {
+        fulfillmentStatus: "SHIPPED",
+        pickupStatus: "PICKED_UP",
+        transitStatus: "IN_TRANSIT",
+        pickupAt: now,
+        transitAt: now,
+        updatedAt: now,
+      }
     );
 
     await Transaction.updateMany(
@@ -25,7 +32,23 @@ export function startFulfillmentMonitor() {
         fulfillmentStatus: "SHIPPED",
         updatedAt: { $lte: deliverBefore },
       },
-      { fulfillmentStatus: "DELIVERED", updatedAt: now }
+      {
+        fulfillmentStatus: "DELIVERED",
+        transitStatus: "DELIVERED",
+        deliveredAt: now,
+        updatedAt: now,
+      }
+    );
+
+    await Transaction.updateMany(
+      {
+        status: "CONFIRMED",
+        deliveredAt: { $ne: null },
+        slaDeadlineAt: { $ne: null, $lt: now },
+      },
+      {
+        slaBreached: true,
+      }
     );
   };
 

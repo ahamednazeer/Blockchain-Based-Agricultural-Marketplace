@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { DataCard } from "@/components/DataCard";
-import { ChartLineUp, Leaf, WarningCircle, Coins } from "@phosphor-icons/react";
+import { ChartLineUp, Leaf, WarningCircle, Coins, Star, ArrowCounterClockwise, SealCheck } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 
 export default function AdminReports() {
@@ -29,6 +29,7 @@ export default function AdminReports() {
     count: Number(count),
   }));
   const categoryTotal = categoryEntries.reduce((sum, item) => sum + item.count, 0);
+  const trust = stats?.trust || {};
   const wasteReduction = stats
     ? Math.round((Number(stats.crops?.sold || 0) / Math.max(1, Number(stats.crops?.total || 0))) * 100)
     : 21;
@@ -41,7 +42,7 @@ export default function AdminReports() {
         <p className="text-sm text-slate-400 mt-2">Measure revenue, waste reduction, and listing quality.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <DataCard
           title="Total Volume"
           value={stats ? `${Number(stats.transactions?.totalEth || 0).toFixed(2)} ETH` : "—"}
@@ -60,6 +61,18 @@ export default function AdminReports() {
           value={stats ? stats.crops?.expired : "—"}
           icon={WarningCircle}
           meta={stats ? `${stats.crops?.expiringSoon ?? 0} expiring soon` : "Awaiting data"}
+        />
+        <DataCard
+          title="Buyer Rating"
+          value={stats ? Number(trust.avgBuyerRating || 0).toFixed(2) : "—"}
+          icon={Star}
+          meta={`${trust.totalRatings ?? 0} ratings`}
+        />
+        <DataCard
+          title="Return Rate"
+          value={stats ? `${Math.round(Number(trust.returnRate || 0) * 100)}%` : "—"}
+          icon={ArrowCounterClockwise}
+          meta={`${trust.returnRequests ?? 0} requests`}
         />
       </div>
 
@@ -90,12 +103,42 @@ export default function AdminReports() {
           </div>
         </div>
         <div className="hud-card">
-          <p className="hud-label">Operational Signals</p>
-          <ul className="mt-4 space-y-3 text-sm text-slate-300">
-            <li>{stats?.users?.pending ?? 0} users awaiting approval.</li>
-            <li>{stats?.crops?.pending ?? 0} listings pending review.</li>
-            <li>{stats?.transactions?.pending ?? 0} transactions pending confirmation.</li>
-          </ul>
+          <p className="hud-label">Quality & Trust</p>
+          <div className="mt-4 space-y-4 text-sm text-slate-300">
+            <div className="flex items-center justify-between">
+              <span>Grade A Listings</span>
+              <span className="text-xs font-mono uppercase tracking-[0.2em]">
+                {trust.gradeAListings ?? 0}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Grade B Listings</span>
+              <span className="text-xs font-mono uppercase tracking-[0.2em]">
+                {trust.gradeBListings ?? 0}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Approved Returns</span>
+              <span className="text-xs font-mono uppercase tracking-[0.2em]">
+                {trust.approvedReturns ?? 0}
+              </span>
+            </div>
+            <div className="h-2 w-full rounded-sm bg-slate-800/80">
+              <div
+                className="h-2 rounded-sm bg-emerald-500/70"
+                style={{ width: `${Math.round(Number(trust.gradeAMix || 0) * 100)}%` }}
+              />
+            </div>
+            <p className="text-xs text-slate-500">
+              Grade A mix: {Math.round(Number(trust.gradeAMix || 0) * 100)}%
+            </p>
+            <div className="flex items-center gap-3 rounded-sm border border-slate-700/60 px-3 py-3">
+              <SealCheck size={18} className="text-blue-300" />
+              <p className="text-xs text-slate-400">
+                Ratings, returns, and quality grades now contribute to a visible trust layer for marketplace review.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

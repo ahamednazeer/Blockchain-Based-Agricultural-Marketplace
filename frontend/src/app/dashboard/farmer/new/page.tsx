@@ -22,15 +22,28 @@ const CATEGORY_OPTIONS = [
 
 type UploadItem = { name: string; url: string };
 
+function calculateExpiryDate(harvestDate: string, freshnessPeriodDays: string) {
+  const harvest = new Date(harvestDate);
+  const days = Number(freshnessPeriodDays);
+  if (Number.isNaN(harvest.getTime()) || !Number.isInteger(days) || days <= 0) {
+    return "";
+  }
+  const expiry = new Date(harvest);
+  expiry.setDate(expiry.getDate() + days);
+  return expiry.toISOString().slice(0, 10);
+}
+
 export default function NewListing() {
   const [form, setForm] = useState({
     name: "",
     category: "Vegetables",
+    qualityGrade: "A",
     quantityValue: "",
     quantityUnit: "kg",
     pricePerUnit: "",
     priceCurrency: "INR",
     harvestDate: "",
+    freshnessPeriodDays: "7",
     expiryDate: "",
     storageType: "",
     description: "",
@@ -66,6 +79,16 @@ export default function NewListing() {
   const updateField = (key: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
+
+  useEffect(() => {
+    const computedExpiry = calculateExpiryDate(form.harvestDate, form.freshnessPeriodDays);
+    setForm((prev) => {
+      if (prev.expiryDate === computedExpiry) {
+        return prev;
+      }
+      return { ...prev, expiryDate: computedExpiry };
+    });
+  }, [form.harvestDate, form.freshnessPeriodDays]);
 
   const unitMeta = useMemo(() => getUnitMeta(form.quantityUnit), [form.quantityUnit]);
   const quantityParse = useMemo(
@@ -183,11 +206,28 @@ export default function NewListing() {
       setMessage("Unable to calculate per-base ETH price.");
       return;
     }
+    if (!form.harvestDate) {
+      setStatus("error");
+      setMessage("Harvest date is required.");
+      return;
+    }
+    const freshnessDays = Number(form.freshnessPeriodDays);
+    if (!Number.isInteger(freshnessDays) || freshnessDays <= 0) {
+      setStatus("error");
+      setMessage("Freshness period must be a positive whole number.");
+      return;
+    }
+    if (!form.expiryDate) {
+      setStatus("error");
+      setMessage("Expiry date could not be calculated. Check harvest date and freshness period.");
+      return;
+    }
 
     const quantityLabel = `${formatQuantityValue(pricing.qtyValue)} ${form.quantityUnit}`;
     const payload = {
       name: form.name,
       category: form.category,
+      qualityGrade: form.qualityGrade as "A" | "B",
       quantity: quantityLabel,
       quantityValue: pricing.qtyValue,
       quantityUnit: form.quantityUnit,
@@ -203,6 +243,7 @@ export default function NewListing() {
       priceInr: pricing.totalInr !== null ? formatInr(pricing.totalInr) : undefined,
       priceCurrency: form.priceCurrency,
       harvestDate: form.harvestDate,
+      freshnessPeriodDays: freshnessDays,
       expiryDate: form.expiryDate,
       storageType: form.storageType,
       description: form.description,
@@ -218,11 +259,13 @@ export default function NewListing() {
       setForm({
         name: "",
         category: "Vegetables",
+        qualityGrade: "A",
         quantityValue: "",
         quantityUnit: "kg",
         pricePerUnit: "",
         priceCurrency: "INR",
         harvestDate: "",
+        freshnessPeriodDays: "7",
         expiryDate: "",
         storageType: "",
         description: "",
@@ -338,6 +381,17 @@ export default function NewListing() {
                   {option}
                 </option>
               ))}
+              </select>
+          </div>
+          <div>
+            <label className="hud-label">Quality Grade</label>
+            <select
+              className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
+              value={form.qualityGrade}
+              onChange={(e) => updateField("qualityGrade", e.target.value)}
+            >
+              <option value="A">Grade A</option>
+              <option value="B">Grade B</option>
             </select>
           </div>
           <div>
@@ -408,13 +462,25 @@ export default function NewListing() {
             />
           </div>
           <div>
+            <label className="hud-label">Freshness Period (days)</label>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
+              value={form.freshnessPeriodDays}
+              onChange={(e) => updateField("freshnessPeriodDays", e.target.value)}
+            />
+          </div>
+          <div>
             <label className="hud-label">Expiry Date</label>
             <input
               type="date"
               className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm"
               value={form.expiryDate}
-              onChange={(e) => updateField("expiryDate", e.target.value)}
+              readOnly
             />
+            <p className="text-xs text-slate-500 mt-2">Auto-calculated from harvest date + freshness period.</p>
           </div>
         </div>
 

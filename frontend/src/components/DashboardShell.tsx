@@ -183,7 +183,7 @@ export function DashboardShell({ title, subtitle, role, navItems, children }: Da
       return wallet;
     }
     return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
-  }, [wallet]);
+  }, [wallet, role]);
 
   const handleLogout = () => {
     if (typeof window !== "undefined") {

@@ -27,6 +27,30 @@ export async function auth(req, res, next) {
   }
 }
 
+export async function optionalAuth(req, res, next) {
+  try {
+    const header = req.headers.authorization || "";
+    const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+    if (!token) {
+      req.user = null;
+      return next();
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user || user.status !== "ACTIVE") {
+      req.user = null;
+      return next();
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    req.user = null;
+    next();
+  }
+}
+
 export function requireRole(role) {
   return (req, res, next) => {
     if (!req.user || req.user.role !== role) {

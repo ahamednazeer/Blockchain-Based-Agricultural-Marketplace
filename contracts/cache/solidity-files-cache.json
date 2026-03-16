@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/syed.ahamed/skillup/Blockchain-Based-Agricultural-Marketplace/contracts/contracts/AgriChain.sol": {
-      "lastModificationDate": 1770829492011,
-      "contentHash": "f97c5e9d4f911ea7f7ab5b553d1e24cb",
+      "lastModificationDate": 1771568775984,
+      "contentHash": "7f9da369c8f2cb944bbe29ed7ec3a41a",
       "sourceName": "contracts/AgriChain.sol",
       "solcConfig": {
         "version": "0.8.24",

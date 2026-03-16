@@ -2,7 +2,10 @@ import { ethers } from "ethers";
 import Crop from "../models/Crop.js";
 import Transaction from "../models/Transaction.js";
 import LedgerEvent from "../models/LedgerEvent.js";
+import User from "../models/User.js";
 import { loadContractMeta } from "./contractMeta.js";
+
+const DVU_PER_ETH = Number(process.env.DVU_PER_ETH || 1000);
 
 function isValidPrivateKey(key) {
   if (typeof key !== "string") {
@@ -42,6 +45,57 @@ function parseQuantity(value) {
   return Math.floor(numeric);
 }
 
+function isValidMongoObjectId(value) {
+  return typeof value === "string" && /^[0-9a-fA-F]{24}$/.test(value);
+}
+
+function toDvu(valueEth) {
+  const eth = Number(valueEth || 0);
+  if (!Number.isFinite(eth) || eth <= 0) {
+    return 0;
+  }
+  return Math.round(eth * DVU_PER_ETH);
+}
+
+async function resolveCropForPurchase({ contractCropId, txHash, buyerWallet, unitsPurchased }) {
+  let intent = null;
+  if (txHash) {
+    const intentQuery = { status: "PENDING", txHash };
+    if (buyerWallet) {
+      intentQuery.buyerWallet = new RegExp(`^${buyerWallet}$`, "i");
+    }
+    if (Number.isFinite(unitsPurchased)) {
+      intentQuery.units = unitsPurchased;
+    }
+    intent = await Transaction.findOne(intentQuery).sort({ createdAt: -1 });
+    if (intent?.cropId) {
+      const intentCrop = await Crop.findById(intent.cropId);
+      if (intentCrop) {
+        return { crop: intentCrop, matchedIntent: intent };
+      }
+    }
+  }
+
+  const candidates = await Crop.find({ contractCropId: Number(contractCropId) }).sort({
+    updatedAt: -1,
+    createdAt: -1,
+  });
+  if (!candidates.length) {
+    return { crop: null, matchedIntent: intent };
+  }
+  if (candidates.length > 1) {
+    console.warn(
+      `Multiple crops share contractCropId=${contractCropId}. Using best candidate for tx ${txHash}.`
+    );
+  }
+
+  const best =
+    candidates.find((item) => item.status === "APPROVED") ||
+    candidates.find((item) => item.status === "SOLD") ||
+    candidates[0];
+  return { crop: best, matchedIntent: intent };
+}
+
 async function handleCropListed({
   cropId,
   farmer,
@@ -69,7 +123,7 @@ async function handleCropListed({
     { upsert: true, new: true }
   );
 
-  if (offchainId) {
+  if (offchainId && isValidMongoObjectId(offchainId)) {
     const perBaseEth = ethers.formatEther(pricePerUnit);
     const update = {
       contractCropId: Number(cropId),
@@ -86,6 +140,8 @@ async function handleCropListed({
       }
     }
     await Crop.findOneAndUpdate({ _id: offchainId }, update);
+  } else if (offchainId) {
+    console.warn("Skipping off-chain crop sync for non-ObjectId offchainId:", offchainId);
   }
 }
 
@@ -100,9 +156,15 @@ async function handleCropPurchased({
   timestamp,
 }) {
   const normalizedBuyer = typeof buyer === "string" ? buyer.toLowerCase() : buyer;
-  const crop = await Crop.findOne({ contractCropId: Number(cropId) });
   const unitsPurchased = Number(units);
   const valueEth = ethers.formatEther(value);
+  const valueDvu = toDvu(valueEth);
+  const { crop, matchedIntent } = await resolveCropForPurchase({
+    contractCropId: Number(cropId),
+    txHash,
+    buyerWallet: normalizedBuyer,
+    unitsPurchased,
+  });
 
   await LedgerEvent.findOneAndUpdate(
     { txHash, logIndex, type: "CropPurchased" },
@@ -128,14 +190,18 @@ async function handleCropPurchased({
     cropId: crop?._id,
     cropName: crop?.name,
     units: Number.isFinite(unitsPurchased) ? unitsPurchased : undefined,
+    valueDvu,
     status: "CONFIRMED",
+    returnStatus: "NONE",
+    pickupStatus: "PENDING",
+    transitStatus: "PENDING",
     blockNumber,
     logIndex,
     timestamp,
   };
 
-  let matchedIntentId = null;
-  if (crop && normalizedBuyer) {
+  let matchedIntentId = matchedIntent?._id || null;
+  if (!matchedIntentId && crop && normalizedBuyer) {
     const buyerRegex = new RegExp(`^${normalizedBuyer}$`, "i");
     const candidates = await Transaction.find({
       status: "PENDING",
@@ -190,6 +256,49 @@ async function handleCropPurchased({
     });
   }
 
+  if (crop?.farmerWallet && normalizedBuyer && valueDvu > 0) {
+    const existingDvuEvent = await LedgerEvent.findOne({ txHash, logIndex, type: "DVUTransfer" });
+    if (!existingDvuEvent) {
+      const buyerRegex = new RegExp(`^${normalizedBuyer}$`, "i");
+      const farmerRegex = new RegExp(`^${crop.farmerWallet}$`, "i");
+      const [buyerUser, farmerUser] = await Promise.all([
+        User.findOne({ walletAddress: buyerRegex }),
+        User.findOne({ walletAddress: farmerRegex }),
+      ]);
+
+      const buyerBefore = Number(buyerUser?.dvuBalance || 0);
+      const debitAmount = Math.max(0, Math.min(buyerBefore, valueDvu));
+
+      if (buyerUser && debitAmount > 0) {
+        buyerUser.dvuBalance = buyerBefore - debitAmount;
+        await buyerUser.save();
+      }
+      if (farmerUser && debitAmount > 0) {
+        farmerUser.dvuBalance = Number(farmerUser.dvuBalance || 0) + debitAmount;
+        await farmerUser.save();
+      }
+
+      await LedgerEvent.create({
+        type: "DVUTransfer",
+        cropId: Number(cropId),
+        actor: normalizedBuyer,
+        txHash,
+        valueEth,
+        valueDvu: debitAmount,
+        fromWallet: normalizedBuyer,
+        toWallet: crop.farmerWallet,
+        note:
+          debitAmount < valueDvu
+            ? "Partial transfer due to insufficient buyer DVU balance."
+            : "Buyer debited and farmer credited in DVU.",
+        units: Number.isFinite(unitsPurchased) ? unitsPurchased : undefined,
+        timestamp,
+        blockNumber,
+        logIndex,
+      });
+    }
+  }
+
   if (crop) {
     if (
       Number.isFinite(unitsPurchased) &&
@@ -228,11 +337,28 @@ async function reconcilePendingTransactions(provider, contract) {
         .filter((hash) => typeof hash === "string" && hash.length > 0)
     )
   );
+  const pendingTimeoutMs = Number(process.env.TX_PENDING_TIMEOUT_MS) || 1000 * 60 * 15;
 
   for (const txHash of txHashes) {
     try {
+      const pendingForHash = pending.filter((tx) => tx.txHash === txHash);
       const receipt = await provider.getTransactionReceipt(txHash);
       if (!receipt) {
+        const oldestCreatedAt = pendingForHash.reduce((oldest, tx) => {
+          if (!tx.createdAt) return oldest;
+          if (!oldest || tx.createdAt < oldest) return tx.createdAt;
+          return oldest;
+        }, null);
+        if (
+          oldestCreatedAt &&
+          Date.now() - new Date(oldestCreatedAt).getTime() > pendingTimeoutMs
+        ) {
+          await Transaction.updateMany(
+            { txHash, status: "PENDING" },
+            { status: "FAILED" }
+          );
+          console.warn(`Marked stale pending tx as FAILED: ${txHash}`);
+        }
         continue;
       }
       const block = receipt.blockNumber ? await provider.getBlock(receipt.blockNumber) : null;

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "send:eth": "node scripts/send-eth.js"
+    "send:eth": "node scripts/send-eth.js",
+    "set:pincode": "node scripts/set-pincode.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

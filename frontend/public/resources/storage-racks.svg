@@ -1,0 +1,9 @@
+<svg width="800" height="480" viewBox="0 0 800 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="480" rx="32" fill="#1C1917"/>
+  <rect x="50" y="50" width="700" height="380" rx="26" fill="#44403C"/>
+  <path d="M190 124V352M610 124V352" stroke="#E7E5E4" stroke-width="16"/>
+  <path d="M250 124V352M550 124V352" stroke="#A8A29E" stroke-width="12"/>
+  <path d="M170 156H630M170 228H630M170 300H630" stroke="#F5F5F4" stroke-width="16"/>
+  <text x="64" y="100" fill="#FAFAF9" font-family="Arial, sans-serif" font-size="28" font-weight="700">Storage Racks</text>
+  <text x="64" y="394" fill="#E7E5E4" font-family="Arial, sans-serif" font-size="22">Raised shelves for clean warehouse storage</text>
+</svg>

@@ -1,0 +1,8 @@
+<svg width="800" height="480" viewBox="0 0 800 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="480" rx="32" fill="#052E16"/>
+  <rect x="52" y="56" width="696" height="368" rx="26" fill="#166534"/>
+  <path d="M120 128H680L640 288H160L120 128Z" fill="#BBF7D0"/>
+  <path d="M160 128L200 288M240 128L280 288M320 128L360 288M400 128L440 288M480 128L520 288M560 128L600 288" stroke="#14532D" stroke-width="10"/>
+  <text x="64" y="100" fill="#DCFCE7" font-family="Arial, sans-serif" font-size="28" font-weight="700">Shade Nets</text>
+  <text x="64" y="392" fill="#BBF7D0" font-family="Arial, sans-serif" font-size="22">Heat protection for temporary produce holding</text>
+</svg>

@@ -36,6 +36,7 @@ Expected result includes: `"0x539"` (hex for 1337).
 cd /Users/syed.ahamed/skillup/Blockchain-Based-Agricultural-Marketplace/contracts
 npm install
 npm run deploy:ganache
+npm run transfer:owner -- --owner <ADMIN_WALLET_FROM_BACKEND_ENV>
 ```
 
 Deployment output is written to:
@@ -64,11 +65,23 @@ ADMIN_WALLET=<ganache_deployer_wallet>
 ADMIN_PRIVATE_KEY=<private_key_of_same_deployer_wallet>
 
 CORS_ORIGIN=http://localhost:3000
+DEFAULT_PINCODE=606107
+
+GROQ_API_KEY=<optional_groq_api_key>
+GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
+GROQ_CHAT_MODEL=llama-3.3-70b-versatile
+GROQ_VISION_MODEL=llama-3.2-11b-vision-preview
+GROQ_TIMEOUT_MS=3500
+GROQ_RECOMMENDATION_CACHE_MS=300000
+GROQ_LOG_ERRORS=false
 ```
 
 Important:
 - `ADMIN_PRIVATE_KEY` must match the contract owner wallet.
 - If Ganache is reset and contract is redeployed, update `CONTRACT_ADDRESS`.
+- Contract purchase flow includes admin fee: 2% to owner wallet, 98% to farmer.
+- Groq keys are optional; without them, the app uses rule-based recommendations.
 
 ## 5) Start backend
 
@@ -126,6 +139,20 @@ Then import funded Ganache accounts and use them as:
 3. Farmer creates listing.
 4. Admin approves listing (publishes on-chain).
 5. Buyer purchases from marketplace.
+6. On every purchase, admin owner wallet receives 2% fee.
+
+## 9.1) Set same pincode for farmer and buyer (606107)
+
+Run this once to backfill existing records:
+
+```bash
+cd /Users/syed.ahamed/skillup/Blockchain-Based-Agricultural-Marketplace/backend
+npm run set:pincode -- --pincode 606107
+```
+
+Notes:
+- Registration now includes a pincode field (default `606107`).
+- Marketplace `GET /crops` filters listings for buyers by matching `buyer.pincode === crop.farmerPincode`.
 
 ## 10) Top up wallet ETH (local Ganache)
 
@@ -133,7 +160,7 @@ If MetaMask shows insufficient funds:
 
 ```bash
 cd /Users/syed.ahamed/skillup/Blockchain-Based-Agricultural-Marketplace/backend
-npm run send:eth -- --to <WALLET_ADDRESS> --eth 10
+npm run send:eth -- --to <WALLET_ADDRESS> --amount 10
 ```
 
 Optional flags:

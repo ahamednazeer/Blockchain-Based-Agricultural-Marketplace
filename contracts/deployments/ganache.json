@@ -1,5 +1,5 @@
 {
-  "address": "0x80b785A869a7Ce3F20A69D5d910e9132f5102Bd2",
+  "address": "0xF0580dA397dE8950eC180D15D991CedeFA267bC4",
   "abi": [
     {
       "type": "constructor",
@@ -36,6 +36,33 @@
       "type": "error",
       "name": "ReentrancyGuardReentrantCall",
       "inputs": []
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "AdminFeePaid",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "admin",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "farmer",
+          "indexed": true
+        },
+        {
+          "type": "uint256",
+          "name": "feeAmount",
+          "indexed": false
+        },
+        {
+          "type": "uint256",
+          "name": "grossAmount",
+          "indexed": false
+        }
+      ]
     },
     {
       "type": "event",
@@ -156,6 +183,34 @@
           "type": "bool",
           "name": "status",
           "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "ADMIN_FEE_BPS",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "BPS_DENOMINATOR",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256",
+          "name": ""
         }
       ]
     },

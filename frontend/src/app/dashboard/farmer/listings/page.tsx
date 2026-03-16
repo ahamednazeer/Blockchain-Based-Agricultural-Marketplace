@@ -8,8 +8,9 @@ import { formatPriceSummary, formatQuantity, resolveAssetUrl } from "@/lib/forma
 
 export default function FarmerListings() {
   const [rows, setRows] = useState<any[]>([]);
+  const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
-  useEffect(() => {
+  const fetchRows = () => {
     api
       .getMyCrops()
       .then((data) => {
@@ -20,7 +21,39 @@ export default function FarmerListings() {
       .catch(() => {
         // leave empty
       });
+  };
+
+  useEffect(() => {
+    fetchRows();
   }, []);
+
+  const updateStock = async (row: any) => {
+    const next = window.prompt("Enter new available quantity:", String(row.quantityValue || ""));
+    if (next === null) return;
+    const quantityValue = Number(next);
+    if (!Number.isFinite(quantityValue) || quantityValue < 0) {
+      setMessage({ type: "err", text: "Invalid quantity value." });
+      return;
+    }
+    try {
+      await api.updateCropStock(row._id || row.id, { quantityValue });
+      setMessage({ type: "ok", text: "Stock updated." });
+      fetchRows();
+    } catch (error: any) {
+      setMessage({ type: "err", text: error.message || "Failed to update stock." });
+    }
+  };
+
+  const removeExpired = async (row: any) => {
+    if (!window.confirm("Remove this expired listing?")) return;
+    try {
+      await api.removeExpiredCrop(row._id || row.id);
+      setMessage({ type: "ok", text: "Expired listing removed." });
+      fetchRows();
+    } catch (error: any) {
+      setMessage({ type: "err", text: error.message || "Failed to remove listing." });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -31,6 +64,17 @@ export default function FarmerListings() {
           Listings are synced on-chain only after admin approval.
         </p>
       </div>
+      {message && (
+        <div
+          className={`hud-card text-sm ${
+            message.type === "ok"
+              ? "border border-green-600 text-green-400"
+              : "border border-rose-500/40 text-rose-200"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
 
       {rows.length === 0 ? (
         <div className="hud-card text-sm text-slate-400">No listings yet.</div>
@@ -39,6 +83,11 @@ export default function FarmerListings() {
           columns={[
             { key: "id", label: "ID", render: (row) => row.id || row._id },
             { key: "name", label: "Crop" },
+            {
+              key: "qualityGrade",
+              label: "Grade",
+              render: (row) => row.qualityGrade || "B",
+            },
             { key: "quantity", label: "Quantity", render: (row) => formatQuantity(row) },
             {
               key: "price",
@@ -108,6 +157,30 @@ export default function FarmerListings() {
                         : "info"
                   }
                 />
+              ),
+            },
+            {
+              key: "actions",
+              label: "Actions",
+              render: (row) => (
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  {row.status !== "EXPIRED" && row.status !== "REJECTED" ? (
+                    <button
+                      onClick={() => updateStock(row)}
+                      className="px-2 py-1 border border-blue-700 text-blue-300 rounded-sm hover:bg-blue-950/40"
+                    >
+                      Update Stock
+                    </button>
+                  ) : null}
+                  {row.status === "EXPIRED" ? (
+                    <button
+                      onClick={() => removeExpired(row)}
+                      className="px-2 py-1 border border-rose-700 text-rose-300 rounded-sm hover:bg-rose-950/40"
+                    >
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
               ),
             },
           ]}

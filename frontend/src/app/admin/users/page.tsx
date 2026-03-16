@@ -61,6 +61,7 @@ export default function AdminUsers() {
             { key: "role", label: "Role" },
             { key: "wallet", label: "Wallet", render: (row) => row.wallet || row.walletAddress },
             { key: "location", label: "Location" },
+            { key: "pincode", label: "Pincode", render: (row) => row.pincode || "606107" },
             {
               key: "status",
               label: "Status",

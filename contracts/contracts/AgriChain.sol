@@ -5,6 +5,9 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract AgriChain is Ownable, ReentrancyGuard {
+    uint256 public constant ADMIN_FEE_BPS = 200;
+    uint256 public constant BPS_DENOMINATOR = 10_000;
+
     struct Crop {
         uint256 id;
         address farmer;
@@ -30,6 +33,7 @@ contract AgriChain is Ownable, ReentrancyGuard {
         string offchainId
     );
     event CropPurchased(uint256 indexed cropId, address indexed buyer, uint256 units, uint256 value);
+    event AdminFeePaid(address indexed admin, address indexed farmer, uint256 feeAmount, uint256 grossAmount);
     event ContractPaused(address indexed admin);
     event ContractUnpaused(address indexed admin);
     event WalletBlacklisted(address indexed wallet, bool status);
@@ -139,8 +143,7 @@ contract AgriChain is Ownable, ReentrancyGuard {
             emit CropPurchased(cropIds[i], msg.sender, units[i], lineTotal);
         }
 
-        (bool success, ) = farmer.call{ value: total }("");
-        require(success, "Payment failed");
+        _payoutWithAdminFee(farmer, total);
     }
 
     function _purchaseUnits(uint256 cropId, uint256 units) internal {
@@ -149,9 +152,7 @@ contract AgriChain is Ownable, ReentrancyGuard {
         require(msg.value == total, "Incorrect payment");
 
         _applyPurchase(crop, units);
-
-        (bool success, ) = crop.farmer.call{ value: total }("");
-        require(success, "Payment failed");
+        _payoutWithAdminFee(crop.farmer, total);
 
         emit CropPurchased(cropId, msg.sender, units, total);
     }
@@ -172,5 +173,21 @@ contract AgriChain is Ownable, ReentrancyGuard {
             crop.isSold = true;
         }
         crop.buyer = msg.sender;
+    }
+
+    function _payoutWithAdminFee(address farmer, uint256 grossAmount) internal {
+        uint256 feeAmount = (grossAmount * ADMIN_FEE_BPS) / BPS_DENOMINATOR;
+        uint256 farmerAmount = grossAmount - feeAmount;
+        address adminWallet = owner();
+
+        (bool farmerSuccess, ) = farmer.call{ value: farmerAmount }("");
+        require(farmerSuccess, "Farmer payment failed");
+
+        if (feeAmount > 0) {
+            (bool adminSuccess, ) = adminWallet.call{ value: feeAmount }("");
+            require(adminSuccess, "Admin fee transfer failed");
+        }
+
+        emit AdminFeePaid(adminWallet, farmer, feeAmount, grossAmount);
     }
 }

@@ -1,0 +1,79 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  ganache:
+    image: trufflesuite/ganache-cli:latest
+    command:
+      [
+        "-p",
+        "7545",
+        "-i",
+        "1337",
+        "-m",
+        "test test test test test test test test test test test junk"
+      ]
+    ports:
+      - "7545:7545"
+
+  contracts:
+    image: ahamednazeer/agri-marketplace-contracts:latest
+    environment:
+      - GANACHE_RPC_URL=http://ganache:7545
+    depends_on:
+      - ganache
+    volumes:
+      - contracts-deployments:/app/deployments
+
+  backend:
+    image: ahamednazeer/agri-marketplace-backend:latest
+    environment:
+      - PORT=8000
+      - MONGODB_URI=mongodb://mongo:27017/agri_marketplace
+      - JWT_SECRET=replace-with-strong-secret
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=strong-password
+      - ADMIN_WALLET=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+      - ADMIN_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+      - GANACHE_RPC_URL=http://ganache:7545
+      - CONTRACT_ABI_PATH=/contracts/deployments/ganache.json
+      - CORS_ORIGIN=http://localhost:3000
+      - EXPIRY_CHECK_INTERVAL_MS=3600000
+      - ETH_INR_RATE=200000
+      - ETH_RATE_CACHE_MS=60000
+      - TX_RECONCILE_INTERVAL_MS=5000
+      - TX_SYNC_ENABLED=true
+      - TX_SYNC_FROM_BLOCK=0
+      - TX_SYNC_LOOKBACK_BLOCKS=50000
+      - FULFILLMENT_CHECK_INTERVAL_MS=3600000
+      - FULFILLMENT_AUTO_SHIP_HOURS=6
+      - FULFILLMENT_AUTO_DELIVER_HOURS=48
+    depends_on:
+      - mongo
+      - ganache
+      - contracts
+    ports:
+      - "8000:8000"
+    volumes:
+      - contracts-deployments:/contracts/deployments:ro
+      - backend-uploads:/app/uploads
+
+  frontend:
+    image: ahamednazeer/agri-marketplace-frontend:latest
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  mongo-data:
+  contracts-deployments:
+  backend-uploads:

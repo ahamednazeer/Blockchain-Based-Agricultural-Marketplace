@@ -13,6 +13,9 @@ export default function RegisterPage() {
     name: "",
     contact: "",
     location: "",
+    pincode: "606107",
+    latitude: "",
+    longitude: "",
     role: "FARMER",
     walletAddress: "",
   });
@@ -33,6 +36,30 @@ export default function RegisterPage() {
     }
   };
 
+  const captureGps = () => {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      setStatus("error");
+      setMessage("Geolocation is not available in this browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setForm((prev) => ({
+          ...prev,
+          latitude: String(Number(pos.coords.latitude.toFixed(6))),
+          longitude: String(Number(pos.coords.longitude.toFixed(6))),
+        }));
+        setStatus("success");
+        setMessage("GPS location captured.");
+      },
+      () => {
+        setStatus("error");
+        setMessage("Failed to capture GPS location.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setStatus(null);
@@ -43,12 +70,23 @@ export default function RegisterPage() {
         name: form.name,
         contact: form.contact,
         location: form.location,
+        pincode: form.pincode,
+        latitude: form.latitude ? Number(form.latitude) : undefined,
+        longitude: form.longitude ? Number(form.longitude) : undefined,
         role: form.role as "FARMER" | "BUYER",
         walletAddress: form.walletAddress,
       });
       setStatus("success");
       setMessage("Registration submitted.");
-      setForm((prev) => ({ ...prev, name: "", contact: "", location: "" }));
+      setForm((prev) => ({
+        ...prev,
+        name: "",
+        contact: "",
+        location: "",
+        pincode: "606107",
+        latitude: "",
+        longitude: "",
+      }));
       router.push("/register/submitted");
     } catch (error: any) {
       setStatus("error");
@@ -128,6 +166,30 @@ export default function RegisterPage() {
                   value={form.location}
                   onChange={(e) => updateField("location", e.target.value)}
                 />
+              </div>
+            </div>
+            <div>
+              <label className="hud-label">Pincode</label>
+              <input
+                className="mt-2 w-full bg-slate-950 border border-slate-700 rounded-sm px-4 py-3 text-sm text-slate-100 focus:border-green-600 outline-none"
+                placeholder="606107"
+                maxLength={6}
+                value={form.pincode}
+                onChange={(e) => updateField("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))}
+              />
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={captureGps}
+                  className="text-xs font-mono uppercase tracking-[0.2em] text-blue-300 hover:text-blue-200"
+                >
+                  Capture GPS
+                </button>
+                {(form.latitude && form.longitude) ? (
+                  <span className="text-xs text-slate-500">
+                    {form.latitude}, {form.longitude}
+                  </span>
+                ) : null}
               </div>
             </div>
             <div>

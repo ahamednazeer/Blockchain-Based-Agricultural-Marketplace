@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { DataTable } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
 import { api } from "@/lib/api";
@@ -67,6 +68,16 @@ export default function AdminListings() {
             { key: "id", label: "ID", render: (row) => row.id || row._id },
             { key: "name", label: "Crop" },
             { key: "category", label: "Category" },
+            {
+              key: "qualityGrade",
+              label: "Grade",
+              render: (row) => (
+                <StatusBadge
+                  label={`Grade ${row.qualityGrade || "B"}`}
+                  tone={row.qualityGrade === "A" ? "active" : "pending"}
+                />
+              ),
+            },
             { key: "quantity", label: "Quantity", render: (row) => formatQuantity(row) },
             {
               key: "price",
@@ -217,6 +228,10 @@ export default function AdminListings() {
                 <p className="text-slate-200 mt-1">{formatQuantity(selected)}</p>
               </div>
               <div>
+                <p className="hud-label">Quality Grade</p>
+                <p className="text-slate-200 mt-1">{selected.qualityGrade || "B"}</p>
+              </div>
+              <div>
                 <p className="hud-label">Price</p>
                 <p className="text-slate-200 mt-1">{formatPriceSummary(selected)}</p>
               </div>
@@ -262,9 +277,12 @@ export default function AdminListings() {
                       : []
                   ).map((url: string, index: number) => (
                     <a key={url + index} href={resolveAssetUrl(url)} target="_blank" rel="noreferrer">
-                      <img
+                      <Image
                         src={resolveAssetUrl(url)}
                         alt={`Crop asset ${index + 1}`}
+                        width={240}
+                        height={96}
+                        unoptimized
                         className="h-24 w-full object-cover rounded-sm border border-slate-700/60"
                       />
                     </a>

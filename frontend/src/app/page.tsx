@@ -143,7 +143,7 @@ export default function HomePage() {
             >
               <span className="inline-flex items-center gap-2">
                 <Wallet size={18} weight="duotone" />
-                {status === "loading" ? "Connecting..." : "MetaMask Login (Farmer / Buyer)"}
+                {status === "loading" ? "Connecting..." : "MetaMask Login (Admin / Farmer / Buyer)"}
               </span>
             </button>
 

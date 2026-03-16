@@ -8,6 +8,9 @@ import { formatQuantityValue } from "@/lib/units";
 export default function BuyerOrders() {
   const [rows, setRows] = useState<any[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<{ type: "ok" | "err"; text: string } | null>(
+    null
+  );
 
   const fetchRows = () => {
     api
@@ -27,6 +30,29 @@ export default function BuyerOrders() {
     const interval = setInterval(fetchRows, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  const requestReturn = async (row: any) => {
+    const reason = window.prompt("Reason for return:", "Quality mismatch");
+    if (!reason) return;
+    try {
+      await api.requestReturn(row._id || row.id, reason);
+      setActionMessage({ type: "ok", text: "Return request submitted." });
+      fetchRows();
+    } catch (error: any) {
+      setActionMessage({ type: "err", text: error.message || "Failed to request return." });
+    }
+  };
+
+  const rateOrder = async (row: any, score: number) => {
+    const feedback = window.prompt("Optional feedback:", "") || "";
+    try {
+      await api.rateOrder(row._id || row.id, { score, feedback });
+      setActionMessage({ type: "ok", text: `Rated ${score}/5 successfully.` });
+      fetchRows();
+    } catch (error: any) {
+      setActionMessage({ type: "err", text: error.message || "Failed to submit rating." });
+    }
+  };
 
   const formatWallet = (wallet?: string) => {
     if (!wallet) return "-";
@@ -101,6 +127,9 @@ export default function BuyerOrders() {
             ? `${row.shippingAddress.recipientName || ""} · ${row.shippingAddress.city || ""} ${row.shippingAddress.state || ""} ${row.shippingAddress.postalCode || ""}`.trim()
             : "-",
           shippingAddress: row.shippingAddress || null,
+          returnStatus: row.returnStatus || "NONE",
+          ratingScore: row.rating?.score || null,
+          ratingFeedback: row.rating?.feedback || "",
         };
       });
     }, [rows]);
@@ -112,6 +141,17 @@ export default function BuyerOrders() {
         <h2 className="text-xl font-semibold mt-2">Purchasing History</h2>
         <p className="text-sm text-slate-400 mt-2">Track escrow, delivery, and blockchain confirmations.</p>
       </div>
+      {actionMessage && (
+        <div
+          className={`hud-card text-sm ${
+            actionMessage.type === "ok"
+              ? "border border-green-600 text-green-400"
+              : "border border-rose-500/40 text-rose-200"
+          }`}
+        >
+          {actionMessage.text}
+        </div>
+      )}
 
       {rows.length === 0 ? (
         <div className="hud-card text-sm text-slate-400">No orders yet.</div>
@@ -238,6 +278,36 @@ export default function BuyerOrders() {
                               <p className="text-xs text-slate-500">
                                 Status updates are based on on-chain confirmation and fulfillment.
                               </p>
+                              <div className="pt-2 space-y-2 text-xs">
+                                <p className="text-slate-400">Return Status: {row.returnStatus}</p>
+                                <p className="text-slate-400">
+                                  Rating: {row.ratingScore ? `${row.ratingScore}/5` : "Not rated"}
+                                </p>
+                                {row.ratingFeedback ? (
+                                  <p className="text-slate-500">&quot;{row.ratingFeedback}&quot;</p>
+                                ) : null}
+                                {row.returnStatus === "NONE" && paymentDone ? (
+                                  <button
+                                    onClick={() => requestReturn(row)}
+                                    className="px-3 py-1 rounded-sm border border-amber-600 text-amber-300 hover:bg-amber-950/40"
+                                  >
+                                    Request Return
+                                  </button>
+                                ) : null}
+                                {row.fulfillmentStatus === "DELIVERED" && !row.ratingScore ? (
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    {[5, 4, 3, 2, 1].map((score) => (
+                                      <button
+                                        key={`${row.rowKey}-${score}`}
+                                        onClick={() => rateOrder(row, score)}
+                                        className="px-2 py-1 rounded-sm border border-blue-700 text-blue-300 hover:bg-blue-950/40"
+                                      >
+                                        Rate {score}
+                                      </button>
+                                    ))}
+                                  </div>
+                                ) : null}
+                              </div>
                             </div>
                           </div>
                         </td>
