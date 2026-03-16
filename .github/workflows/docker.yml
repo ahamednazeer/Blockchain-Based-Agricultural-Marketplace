@@ -31,7 +31,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ahamednazeer/agri-marketplace-${{ matrix.service }}
+          images: ahamednazeer/blockchain-based-agricultural-marketplace-${{ matrix.service }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha
