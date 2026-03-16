@@ -1,10 +1,10 @@
-import "@nomicfoundation/hardhat-toolbox";
-import dotenv from "dotenv";
+require("@nomicfoundation/hardhat-toolbox");
+const dotenv = require("dotenv");
 
 dotenv.config();
 
 /** @type {import('hardhat/config').HardhatUserConfig} */
-const config = {
+module.exports = {
   solidity: "0.8.24",
   networks: {
     ganache: {
@@ -12,5 +12,3 @@ const config = {
     },
   },
 };
-
-export default config;
